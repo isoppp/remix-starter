@@ -18,9 +18,11 @@
     "resolveJsonModule": true,
     "target": "ES2022",
     "strict": true,
+    "noUncheckedIndexedAccess": true, // added
     "allowJs": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
+
     "baseUrl": ".",
     "paths": {
       "~/*": ["./app/*"]

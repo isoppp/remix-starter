@@ -5,10 +5,10 @@
   "type": "module",
   "packageManager": "pnpm@9.9.0",
   "scripts": {
+    "start": "remix-serve ./build/server/index.js",
     "build": "remix vite:build",
     "dev": "remix vite:dev",
     "lint": "eslint .",
-    "start": "remix-serve ./build/server/index.js",
     "check": "pnpm biome check",
     "typecheck": "tsc"
   },
