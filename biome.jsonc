@@ -1,5 +1,10 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
+  "json": {
+    "parser": {
+      "allowComments": true
+    }
+  },
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
@@ -15,7 +20,11 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error"
+      }
     }
   }
 }

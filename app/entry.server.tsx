@@ -5,7 +5,6 @@
  */
 
 import { PassThrough } from "node:stream";
-
 import type { AppLoadContext, EntryContext } from "@remix-run/node";
 import { createReadableStreamFromReadable } from "@remix-run/node";
 import { RemixServer } from "@remix-run/react";
@@ -21,6 +20,7 @@ export default function handleRequest(
   remixContext: EntryContext,
   // This is ignored so we can keep it in the template for visibility.  Feel
   // free to delete this parameter in your app if you're not using it!
+  // biome-ignore lint/correctness/noUnusedVariables: ↑
   loadContext: AppLoadContext,
 ) {
   return isbot(request.headers.get("user-agent") || "")
