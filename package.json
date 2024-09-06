@@ -8,24 +8,21 @@
     "start": "remix-serve ./build/server/index.js",
     "build": "remix vite:build",
     "dev": "dotenv -e .env.local remix vite:dev",
-
     "lint": "eslint .",
     "check": "pnpm biome check",
     "lint-fix": "pnpm lint --fix && pnpm check --write",
     "typecheck": "tsc",
-
     "migrate": "dotenv -e .env.local -- prisma migrate dev",
     "migrate:reset": "dotenv -e .env.local -- prisma migrate reset",
     "migrate:reset:test": "dotenv -e .env.test -- prisma migrate reset --force --skip-seed",
     "migrate:deploy": "dotenv -e .env.production prisma migrate deploy",
     "seed": "dotenv -e .env.local -- tsx prisma/seed/index.ts",
     "postinstall": "prisma generate",
-
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-
     "test": "vitest --workspace=vitest.workspace.ts",
-    "pretest": "pnpm exec playwright install chromium"
+    "pretest": "pnpm exec playwright install chromium",
+    "gen-c": "scaffdog generate react-component"
   },
   "dependencies": {
     "@prisma/client": "5.19.1",
@@ -73,6 +70,7 @@
     "playwright": "1.47.0",
     "postcss": "8.4.45",
     "prisma": "5.19.1",
+    "scaffdog": "4.0.0",
     "storybook": "8.2.9",
     "tailwindcss": "3.4.10",
     "tsx": "4.19.0",
