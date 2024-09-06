@@ -8,18 +8,24 @@
     "start": "remix-serve ./build/server/index.js",
     "build": "remix vite:build",
     "dev": "dotenv -e .env.local remix vite:dev",
+
     "lint": "eslint .",
     "check": "pnpm biome check",
     "lint-fix": "pnpm lint --fix && pnpm check --write",
     "typecheck": "tsc",
+
     "migrate": "dotenv -e .env.local -- prisma migrate dev",
     "migrate:reset": "dotenv -e .env.local -- prisma migrate reset",
     "migrate:reset:test": "dotenv -e .env.test -- prisma migrate reset --force --skip-seed",
     "migrate:deploy": "dotenv -e .env.production prisma migrate deploy",
     "seed": "dotenv -e .env.local -- tsx prisma/seed/index.ts",
+    "postinstall": "prisma generate",
+
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+
     "test": "vitest --workspace=vitest.workspace.ts",
-    "pretest": "pnpm exec playwright install chromium",
-    "postinstall": "prisma generate"
+    "pretest": "pnpm exec playwright install chromium"
   },
   "dependencies": {
     "@prisma/client": "5.19.1",
@@ -44,6 +50,13 @@
   "devDependencies": {
     "@biomejs/biome": "1.8.3",
     "@remix-run/dev": "2.11.2",
+    "@storybook/addon-essentials": "8.2.9",
+    "@storybook/addon-interactions": "8.2.9",
+    "@storybook/addon-links": "8.2.9",
+    "@storybook/blocks": "8.2.9",
+    "@storybook/react": "8.2.9",
+    "@storybook/react-vite": "8.2.9",
+    "@storybook/test": "8.2.9",
     "@testing-library/react": "16.0.1",
     "@types/react": "18.3.5",
     "@types/react-dom": "18.3.0",
@@ -53,12 +66,14 @@
     "autoprefixer": "10.4.20",
     "dotenv-cli": "7.4.2",
     "eslint": "9.9.1",
+    "eslint-plugin-storybook": "0.8.0",
     "eslint-plugin-tailwindcss": "3.17.4",
     "globals": "15.9.0",
     "lefthook": "1.7.15",
     "playwright": "1.47.0",
     "postcss": "8.4.45",
     "prisma": "5.19.1",
+    "storybook": "8.2.9",
     "tailwindcss": "3.4.10",
     "tsx": "4.19.0",
     "typescript": "5.5.4",
@@ -68,5 +83,8 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "eslintConfig": {
+    "extends": ["plugin:storybook/recommended"]
   }
 }
