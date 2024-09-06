@@ -5,7 +5,7 @@
   "type": "module",
   "packageManager": "pnpm@9.9.0",
   "scripts": {
-    "start": "pnpm prisma migrate deploy && remix-serve ./build/server/index.js",
+    "start": "echo $DATABASE_URL && pnpm prisma migrate deploy && remix-serve ./build/server/index.js",
     "build": "remix vite:build",
     "dev": "dotenv -e .env.local remix vite:dev",
     "lint": "eslint .",
