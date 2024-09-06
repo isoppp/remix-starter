@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/prisma"
-import { createContext, createInternalContext } from "@/server/trpc/context"
-import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
-import * as v from "valibot"
-import { publicProcedure, router, t } from "./trpc"
+import { prisma } from '@/lib/prisma'
+import { createContext, createInternalContext } from '@/server/trpc/context'
+import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
+import * as v from 'valibot'
+import { publicProcedure, router, t } from './trpc'
 
 const appRouter = router({
-  hello: publicProcedure.query(() => "world"),
+  hello: publicProcedure.query(() => 'world'),
   exampleList: publicProcedure.query(async () => {
     return prisma.example.findMany()
   }),
@@ -26,7 +26,7 @@ const appRouter = router({
 
 export type AppRouter = typeof appRouter
 
-export const handler = (request: Request, endpoint = "/api/trpc") =>
+export const handler = (request: Request, endpoint = '/api/trpc') =>
   fetchRequestHandler({
     endpoint,
     req: request,

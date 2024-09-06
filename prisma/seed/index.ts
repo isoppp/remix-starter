@@ -1,9 +1,9 @@
-import { prisma } from "@/lib/prisma"
+import { prisma } from '@/lib/prisma'
 
 async function seed() {
   await prisma.example.create({
     data: {
-      name: "1",
+      name: '1',
     },
   })
 }

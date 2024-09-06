@@ -1,7 +1,7 @@
-import * as v from "valibot"
+import * as v from 'valibot'
 
 const envSchema = v.object({
-  APP_ENV: v.picklist(["local", "test", "development", "staging", "production"]),
+  APP_ENV: v.picklist(['local', 'test', 'development', 'staging', 'production']),
   PORT: v.optional(v.number(), 3000),
 })
 
