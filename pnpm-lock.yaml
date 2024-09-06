@@ -23,6 +23,12 @@ importers:
       '@remix-run/serve':
         specifier: 2.11.2
         version: 2.11.2(typescript@5.5.4)
+      '@trpc/client':
+        specifier: 11.0.0-rc.502
+        version: 11.0.0-rc.502(@trpc/server@11.0.0-rc.502)
+      '@trpc/server':
+        specifier: 11.0.0-rc.502
+        version: 11.0.0-rc.502
       class-variance-authority:
         specifier: 0.7.0
         version: 0.7.0
@@ -1015,6 +1021,14 @@ packages:
     resolution: {integrity: sha512-6UUxd0+SKomjdzuAcp+HAmxw1FlGBnl1v2yEPSabtx4lBfdXHDVsW7+lQkgz9cNFJGY3AWR7+V8P5BqkD9L9nA==}
     cpu: [x64]
     os: [win32]
+
+  '@trpc/client@11.0.0-rc.502':
+    resolution: {integrity: sha512-ysFQ3wHnjzLcAqeuwx9/B/YV+2XN/kmfAdTUG+O/SUAdP2wAwo6XbhOxlHw0HWS5pDCsTfJkxDr1nMVkuFM07Q==}
+    peerDependencies:
+      '@trpc/server': 11.0.0-rc.502+2a8c56027
+
+  '@trpc/server@11.0.0-rc.502':
+    resolution: {integrity: sha512-n6B8Q/UqF+hFXyCTXq9AWSn6EkXBbVo/Bs7/QzZxe5KD5CdnBomC7A1y6Qr+i0eiOWwTHJZQ0az+gJetb2fdxw==}
 
   '@types/acorn@4.0.6':
     resolution: {integrity: sha512-veQTnWP+1D/xbxVrPC3zHnCZRjSrKfhbMUlEA43iMZLu7EsnTtkJklIuwrCPbOi8YkvDQAiW05VQQFvvz9oieQ==}
@@ -4149,6 +4163,12 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.21.2':
     optional: true
+
+  '@trpc/client@11.0.0-rc.502(@trpc/server@11.0.0-rc.502)':
+    dependencies:
+      '@trpc/server': 11.0.0-rc.502
+
+  '@trpc/server@11.0.0-rc.502': {}
 
   '@types/acorn@4.0.6':
     dependencies:

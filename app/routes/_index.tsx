@@ -1,16 +1,49 @@
 import { Badge } from "@/components/ui/badge"
-import type { MetaFunction } from "@remix-run/node"
+import { trpc } from "@/lib/trpcClient"
+import { createInternalTrpcServer } from "@/server/trpc"
+import type { LoaderFunctionArgs, MetaFunction } from "@remix-run/node"
+import { useLoaderData } from "@remix-run/react"
 
 export const meta: MetaFunction = () => {
   return [{ title: "New Remix App" }, { name: "description", content: "Welcome to Remix!" }]
 }
 
+export const loader = async (ctx: LoaderFunctionArgs) => {
+  const trpcServer = createInternalTrpcServer(ctx.request)
+  const message = await trpcServer.hello()
+  return {
+    message,
+  }
+}
+
 export default function Index() {
+  const data = useLoaderData<typeof loader>()
+
+  const fetchExamples = async () => {
+    const examples = await trpc.exampleList.query()
+    console.log(examples)
+  }
+
+  const addExample = async (name: string) => {
+    const example = await trpc.exampleCreate.query({ name })
+    console.log(example)
+  }
   return (
     <div className="p-4 font-sans">
       <h1 className="text-3xl">Welcome to Remix</h1>
       <div>
         <Badge>badge test</Badge>
+      </div>
+      <div>ssr: {data.message}</div>
+      <div>
+        <button type="button" onClick={fetchExamples}>
+          fetch
+        </button>
+      </div>
+      <div>
+        <button type="button" onClick={() => addExample(crypto.randomUUID().slice(0, 4))}>
+          submit
+        </button>
       </div>
       <ul className="mt-4 list-disc space-y-2 pl-6">
         <li>

@@ -14,11 +14,4 @@ const getPrismaClient = () => {
   return prisma
 }
 
-declare global {
-  var prisma: undefined | ReturnType<typeof getPrismaClient>
-}
-
-// biome-ignore lint/suspicious/noRedeclare: <explanation>
-export const prisma = globalThis.prisma ?? getPrismaClient()
-
-if (env.APP_ENV !== "production") globalThis.prisma = prisma // HMR
+export const prisma = getPrismaClient()
