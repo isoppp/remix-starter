@@ -1,40 +1,60 @@
-# Welcome to Remix!
+# Remix Starter
 
-- 📖 [Remix docs](https://remix.run/docs)
+## Features
+
+- [x] Remix
+- [x] Biome for basic lint and format
+- [x] ESLint for only tailwindcss
+- [x] Lefthook ( consider to change to another hook libs )
+- [x] TailwindCSS and shadcn-ui
+- [x] Postgres through docker compose
+- [x] Prisma
+- [x] Valibot for schema validation
+- [x] tRPC
+- [x] React Query
+- [x] vitest ( .n. prefix runs on node env, .b. prefix runs on browser env)
+- [x] Storybook
+- [x] Scaffdog for component template
+- [x] Renovate for package updates
+- [x] Github Actions for basic linting and testing
+
+TODO: put links to each feature
+
+---
+
+- [ ] tRPC example test ( or any test which uses DB )
+- [ ] Docker for deployment
+- [ ] Auth? (Firebase or self implementation)
 
 ## Development
 
+Run docker compose for postgresql:
+
+```bash
+docker compose up -d
+```
+
+Run prisma migration:
+
+```bash
+pnpm migrate
+```
+
 Run the dev server:
 
-```shellscript
-npm run dev
+```bash
+pnpm dev
 ```
 
-## Deployment
+Other commands:
 
-First, build your app for production:
+```bash
+# Create a new component
+pnpm gen-c
 
-```sh
-npm run build
+# storybook
+pnpm storybook
+
+# run test
+pnpm test
 ```
-
-Then run the app in production mode:
-
-```sh
-npm start
-```
-
-Now you'll need to pick a host to deploy it to.
-
-### DIY
-
-If you're familiar with deploying Node applications, the built-in Remix app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-- `build/server`
-- `build/client`
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever css framework you prefer. See the [Vite docs on css](https://vitejs.dev/guide/features.html#css) for more information.
