@@ -6,23 +6,23 @@
 - [x] Biome for basic lint and format
 - [x] ESLint for only tailwindcss
 - [x] Lefthook ( consider to change to another hook libs )
+  - I think after commit --amend, the hook is sometimes not triggered 
 - [x] TailwindCSS and shadcn-ui
 - [x] Postgres through docker compose
 - [x] Prisma
 - [x] Valibot for schema validation
-- [x] tRPC
+- [x] tRPC with test example which uses DB
 - [x] React Query
 - [x] vitest ( .n. prefix runs on node env, .b. prefix runs on browser env)
 - [x] Storybook
 - [x] Scaffdog for component template
 - [x] Renovate for package updates
-- [x] Github Actions for basic linting and testing
+- [x] GitHub Actions for basic linting and testing
 
 TODO: put links to each feature
 
 ---
 
-- [ ] tRPC example test ( or any test which uses DB )
 - [ ] Docker for deployment
 - [ ] Auth? (Firebase or self implementation)
 

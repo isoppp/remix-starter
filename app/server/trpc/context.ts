@@ -1,3 +1,7 @@
+export async function createContextInner() {
+  return {}
+}
+
 export function createContext({
   req,
   resHeaders,

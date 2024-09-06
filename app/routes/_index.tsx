@@ -10,7 +10,7 @@ export const meta: MetaFunction = () => {
 
 export const loader = async (ctx: LoaderFunctionArgs) => {
   const trpcServer = createInternalTrpcServer(ctx.request)
-  const message = await trpcServer.hello()
+  const message = await trpcServer.example.hello()
   return {
     message,
   }
@@ -20,10 +20,10 @@ export default function Index() {
   const data = useLoaderData<typeof loader>()
 
   const utils = trpc.useUtils()
-  const queryResult = trpc.exampleList.useQuery()
-  const mutation = trpc.exampleCreate.useMutation({
+  const queryResult = trpc.example.list.useQuery()
+  const mutation = trpc.example.create.useMutation({
     onSuccess: async () => {
-      await utils.exampleList.invalidate()
+      await utils.example.list.invalidate()
     },
   })
 

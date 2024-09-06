@@ -1,27 +1,10 @@
-import { prisma } from '@/lib/prisma'
 import { createContext, createInternalContext } from '@/server/trpc/context'
+import { exampleRouter } from '@/server/trpc/routes/example'
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
-import * as v from 'valibot'
-import { publicProcedure, router, t } from './trpc'
+import { router, t } from './trpc'
 
 const appRouter = router({
-  hello: publicProcedure.query(() => 'world'),
-  exampleList: publicProcedure.query(async () => {
-    return prisma.example.findMany()
-  }),
-  exampleCreate: publicProcedure
-    .input(
-      v.parser(
-        v.object({
-          name: v.pipe(v.string(), v.nonEmpty(), v.maxLength(4)),
-        }),
-      ),
-    )
-    .mutation(async ({ input }) => {
-      return prisma.example.create({
-        data: input,
-      })
-    }),
+  example: exampleRouter,
 })
 
 export type AppRouter = typeof appRouter
@@ -34,8 +17,6 @@ export const handler = (request: Request, endpoint = '/api/trpc') =>
     createContext,
   })
 
-const createCaller = t.createCallerFactory(appRouter)
-export const createTrpcServer = (req: Request, resHeaders: Headers) =>
-  createCaller(() => createContext({ req, resHeaders }))
+export const createCaller = t.createCallerFactory(appRouter)
 
 export const createInternalTrpcServer = (req: Request) => createCaller(() => createInternalContext({ req }))
