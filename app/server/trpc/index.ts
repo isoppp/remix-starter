@@ -17,7 +17,7 @@ const appRouter = router({
         }),
       ),
     )
-    .query(async ({ input }) => {
+    .mutation(async ({ input }) => {
       return prisma.example.create({
         data: input,
       })

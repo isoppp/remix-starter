@@ -1,5 +1,8 @@
+import { trpc } from "@/lib/trpcClient"
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react"
 import "./tailwind.css"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { httpBatchLink } from "@trpc/client"
 import type { ReactNode } from "react"
 
 export function Layout({ children }: { children: ReactNode }) {
@@ -20,6 +23,26 @@ export function Layout({ children }: { children: ReactNode }) {
   )
 }
 
+const queryClient = new QueryClient()
+const trpcClient = trpc.createClient({
+  links: [
+    httpBatchLink({
+      url: "/api/trpc",
+      // async headers() {
+      //   return {
+      //     authorization: getAuthCookie(),
+      //   };
+      // },
+    }),
+  ],
+})
+
 export default function App() {
-  return <Outlet />
+  return (
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <Outlet />
+      </QueryClientProvider>
+    </trpc.Provider>
+  )
 }

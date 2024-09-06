@@ -19,15 +19,24 @@ export const loader = async (ctx: LoaderFunctionArgs) => {
 export default function Index() {
   const data = useLoaderData<typeof loader>()
 
+  const utils = trpc.useUtils()
+  const queryResult = trpc.exampleList.useQuery()
+  const mutation = trpc.exampleCreate.useMutation({
+    onSuccess: async () => {
+      await utils.exampleList.invalidate()
+    },
+  })
+
   const fetchExamples = async () => {
-    const examples = await trpc.exampleList.query()
+    const examples = await queryResult.refetch()
     console.log(examples)
   }
 
   const addExample = async (name: string) => {
-    const example = await trpc.exampleCreate.query({ name })
+    const example = await mutation.mutateAsync({ name })
     console.log(example)
   }
+
   return (
     <div className="p-4 font-sans">
       <h1 className="text-3xl">Welcome to Remix</h1>
@@ -37,13 +46,15 @@ export default function Index() {
       <div>ssr: {data.message}</div>
       <div>
         <button type="button" onClick={fetchExamples}>
-          fetch
+          refetch
         </button>
+        <div>{queryResult.data?.length}</div>
       </div>
       <div>
         <button type="button" onClick={() => addExample(crypto.randomUUID().slice(0, 4))}>
           submit
         </button>
+        <div>{mutation.isPending}</div>
       </div>
       <ul className="mt-4 list-disc space-y-2 pl-6">
         <li>
