@@ -1,5 +1,10 @@
-import type { NodeHTTPCreateContextOption } from "@trpc/server/adapters/node-http"
-export function createContext({ req, resHeaders }: NodeHTTPCreateContextOption) {
+export function createContext({
+  req,
+  resHeaders,
+}: {
+  req: Request
+  resHeaders: Headers
+}) {
   return { req, resHeaders }
 }
 

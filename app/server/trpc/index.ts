@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { createContext } from "@/server/trpc/context"
+import { createContext, createInternalContext } from "@/server/trpc/context"
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch"
 import * as v from "valibot"
 import { publicProcedure, router, t } from "./trpc"
@@ -38,4 +38,4 @@ const createCaller = t.createCallerFactory(appRouter)
 export const createTrpcServer = (req: Request, resHeaders: Headers) =>
   createCaller(() => createContext({ req, resHeaders }))
 
-export const createInternalTrpcServer = (req: Request) => createCaller(() => createContext({ req }))
+export const createInternalTrpcServer = (req: Request) => createCaller(() => createInternalContext({ req }))
