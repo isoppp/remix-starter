@@ -30,8 +30,7 @@ RUN pnpm build
 # Remove dev dependencies
 # for monorepo: RUN rm -rf node_modules
 # for monorepo: RUN pnpm install --prod
-RUN pnpm prune --prod
-
+RUN pnpm prune --prod --ignore-scripts
 
 # Final stage for app image
 FROM base AS prod
