@@ -1,5 +1,5 @@
-import typescriptEslintParser from "@typescript-eslint/parser";
-import tailwind from "eslint-plugin-tailwindcss";
+import typescriptEslintParser from "@typescript-eslint/parser"
+import tailwind from "eslint-plugin-tailwindcss"
 
 // only use for tailwind
 export default [
@@ -10,4 +10,4 @@ export default [
     },
   },
   ...tailwind.configs["flat/recommended"],
-];
+]
