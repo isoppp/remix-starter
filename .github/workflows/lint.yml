@@ -1,4 +1,4 @@
-name: 'lint and test'
+name: Basic Tests
 
 on:
   push:
@@ -20,6 +20,8 @@ jobs:
           cache-dependency-path: ./pnpm-lock.yaml
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: generate prisma client
+        run: pnpm prisma generate
       - name: eslint
         run: pnpm lint
       - name: biome
