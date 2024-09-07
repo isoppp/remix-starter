@@ -1,3 +1,7 @@
+/**
+ * This file is initially referenced the epic stack server/index.ts file and refactored for me.
+ */
+
 import crypto from 'node:crypto'
 import { createRequestHandler } from '@remix-run/express'
 import type { ServerBuild } from '@remix-run/node'
@@ -7,45 +11,59 @@ import compression from 'compression'
 import express from 'express'
 import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
-import helmet from 'helmet'
+import helmet, { type HelmetOptions } from 'helmet'
+import morgan from 'morgan'
 
-const MODE = process.env.NODE_ENV ?? 'development'
-const IS_PROD = MODE === 'production'
-const IS_DEV = MODE === 'development'
-const ALLOW_INDEXING = process.env.ALLOW_INDEXING !== 'false'
+const IS_LOCAL = process.env.APP_ENV === 'local'
+const ALLOW_INDEXING = false
+const STRONGEST_RATE_LIMIT_PATH: string[] = [
+  // '/login',
+  // '/signup',
+  // '/verify',
+  // '/admin',
+  // '/onboarding',
+  // '/reset-password',
+  // '/settings/profile',
+  // '/resources/login',
+  // '/resources/verify',
+]
+
+const HELMET_OPTIONS: HelmetOptions = {
+  xPoweredBy: false,
+  referrerPolicy: { policy: 'same-origin' },
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: {
+    reportOnly: true, // TODO enable in the future
+    directives: {
+      'connect-src': [IS_LOCAL ? 'ws:' : null, "'self'"].filter((v) => typeof v === 'string'),
+      'font-src': ["'self'"],
+      'frame-src': ["'self'"],
+      'img-src': ["'self'", 'data:'],
+      // @ts-expect-error
+      'script-src': ["'strict-dynamic'", "'self'", (_, res) => `'nonce-${res.locals.cspNonce}'`],
+      // @ts-expect-error
+      'script-src-attr': [(_, res) => `'nonce-${res.locals.cspNonce}'`],
+      'upgrade-insecure-requests': null,
+    },
+  },
+}
 
 // Development-only: Vite Dev Server
-let viteDevServer
-if (IS_DEV) {
-  viteDevServer = await import('vite').then((vite) => vite.createServer({ server: { middlewareMode: true } }))
-}
+const viteDevServer = IS_LOCAL
+  ? await import('vite').then((vite) => vite.createServer({ server: { middlewareMode: true } }))
+  : undefined
 
 // Express app setup
 const app = express()
+
+// Trust proxy
+app.set('trust proxy', true)
 
 // Middleware: Compression
 app.use(compression())
 
 // Middleware: Helmet for security headers
-app.use(
-  helmet({
-    xPoweredBy: false,
-    referrerPolicy: { policy: 'same-origin' },
-    crossOriginEmbedderPolicy: false,
-    contentSecurityPolicy: {
-      reportOnly: true,
-      directives: {
-        'connect-src': [MODE === 'development' ? 'ws:' : null, "'self'"].filter(Boolean),
-        'font-src': ["'self'"],
-        'frame-src': ["'self'"],
-        'img-src': ["'self'", 'data:'],
-        'script-src': ["'strict-dynamic'", "'self'", (_, res) => `'nonce-${res.locals.cspNonce}'`],
-        'script-src-attr': [(_, res) => `'nonce-${res.locals.cspNonce}'`],
-        'upgrade-insecure-requests': null,
-      },
-    },
-  }),
-)
+app.use(helmet(HELMET_OPTIONS))
 
 // Middleware: CSP nonce
 app.use((_, res, next) => {
@@ -63,11 +81,21 @@ if (viteDevServer) {
 
 app.get(['/img/*', '/favicons/*'], (_req, res) => res.status(404).send('Not found'))
 
-// TODO: リクエストロガーを追加
+// Request logger
+morgan.token('url', (req) => decodeURIComponent(req.url ?? ''))
+app.use(
+  morgan('tiny', {
+    skip: (req, res) =>
+      res.statusCode === 200 &&
+      (req.url?.startsWith('/resources/note-images') ||
+        req.url?.startsWith('/resources/user-images') ||
+        req.url?.startsWith('/resources/healthcheck')),
+  }),
+)
 
 // Rate limiting settings
-const maxMultiple = !IS_PROD || process.env.PLAYWRIGHT_TEST_BASE_URL ? 10_000 : 1
-const rateLimitDefault = {
+const maxMultiple = IS_LOCAL || process.env.PLAYWRIGHT_TEST_BASE_URL ? 10_000 : 1
+const rateLimitDefault: Parameters<typeof rateLimit>[0] = {
   windowMs: 60 * 1000,
   max: 1000 * maxMultiple,
   standardHeaders: true,
@@ -81,20 +109,8 @@ const strongRateLimit = rateLimit({ ...rateLimitDefault, windowMs: 60 * 1000, ma
 const generalRateLimit = rateLimit(rateLimitDefault)
 
 app.use((req, res, next) => {
-  const strongPaths = [
-    '/login',
-    '/signup',
-    '/verify',
-    '/admin',
-    '/onboarding',
-    '/reset-password',
-    '/settings/profile',
-    '/resources/login',
-    '/resources/verify',
-  ]
-
   if (req.method !== 'GET' && req.method !== 'HEAD') {
-    if (strongPaths.some((p) => req.path.includes(p))) {
+    if (STRONGEST_RATE_LIMIT_PATH.some((p) => req.path.includes(p))) {
       return strongestRateLimit(req, res, next)
     }
     return strongRateLimit(req, res, next)
@@ -131,7 +147,7 @@ app.get('*', (req, res, next) => {
 // Get Remix build
 async function getBuild() {
   const build = viteDevServer
-    ? viteDevServer.ssrLoadModule('virtual:remix/server-build')
+    ? await viteDevServer.ssrLoadModule('virtual:remix/server-build')
     : await import('../build/server/index.js')
   return build as unknown as ServerBuild
 }
@@ -149,7 +165,7 @@ app.all(
   '*',
   createRequestHandler({
     getLoadContext: (_, res) => ({ cspNonce: res.locals.cspNonce, serverBuild: getBuild() }),
-    mode: MODE,
+    mode: process.env.APP_ENV,
     build: getBuild,
   }),
 )
@@ -157,8 +173,15 @@ app.all(
 // Server startup
 const desiredPort = Number(process.env.PORT || 3000)
 const portToUse = await getPort({ port: portNumbers(desiredPort, desiredPort + 100) })
+
+const portAvailable = desiredPort === portToUse
+if (!portAvailable && !IS_LOCAL) {
+  console.log(`! Port ${desiredPort} is not available.`)
+  process.exit(1)
+}
+
 const server = app.listen(portToUse, () => {
-  console.log(`🚀 We have liftoff!`)
+  console.log('🚀 We have liftoff!')
   console.log(` ${chalk.bold('Local:')} ${chalk.cyan(`http://localhost:${portToUse}`)}`)
   console.log(`${chalk.bold('Press Ctrl+C to stop')}`)
 })
