@@ -5,6 +5,7 @@
  */
 
 import { PassThrough } from 'node:stream'
+import { NonceProvider } from '@/lib/nonce'
 import type { AppLoadContext, EntryContext } from '@remix-run/node'
 import { createReadableStreamFromReadable } from '@remix-run/node'
 import { RemixServer } from '@remix-run/react'
@@ -23,9 +24,10 @@ export default function handleRequest(
   // biome-ignore lint/correctness/noUnusedVariables: ↑
   loadContext: AppLoadContext,
 ) {
+  const nonce = loadContext.cspNonce?.toString() ?? ''
   return isbot(request.headers.get('user-agent') || '')
-    ? handleBotRequest(request, responseStatusCode, responseHeaders, remixContext)
-    : handleBrowserRequest(request, responseStatusCode, responseHeaders, remixContext)
+    ? handleBotRequest(request, responseStatusCode, responseHeaders, remixContext, nonce)
+    : handleBrowserRequest(request, responseStatusCode, responseHeaders, remixContext, nonce)
 }
 
 function handleBotRequest(
@@ -33,12 +35,16 @@ function handleBotRequest(
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
+  nonce: string,
 ) {
   return new Promise((resolve, reject) => {
     let shellRendered = false
     const { pipe, abort } = renderToPipeableStream(
-      <RemixServer context={remixContext} url={request.url} abortDelay={ABORT_DELAY} />,
+      <NonceProvider value={nonce}>
+        <RemixServer context={remixContext} url={request.url} abortDelay={ABORT_DELAY} nonce={nonce} />
+      </NonceProvider>,
       {
+        nonce,
         onAllReady() {
           shellRendered = true
           const body = new PassThrough()
@@ -80,12 +86,16 @@ function handleBrowserRequest(
   responseStatusCode: number,
   responseHeaders: Headers,
   remixContext: EntryContext,
+  nonce: string,
 ) {
   return new Promise((resolve, reject) => {
     let shellRendered = false
     const { pipe, abort } = renderToPipeableStream(
-      <RemixServer context={remixContext} url={request.url} abortDelay={ABORT_DELAY} />,
+      <NonceProvider value={nonce}>
+        <RemixServer context={remixContext} url={request.url} abortDelay={ABORT_DELAY} nonce={nonce} />
+      </NonceProvider>,
       {
+        nonce,
         onShellReady() {
           shellRendered = true
           const body = new PassThrough()

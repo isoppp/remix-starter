@@ -74,14 +74,12 @@ if (!ALLOW_INDEXING) {
   })
 }
 
-// Middleware: Helmet for security headers
-app.use(helmet(HELMET_OPTIONS))
-
-// Middleware: CSP nonce
+// Middleware: CSP nonce and Helmet for security headers (these orders are important)
 app.use((_, res, next) => {
   res.locals.cspNonce = crypto.randomBytes(16).toString('hex')
   next()
 })
+app.use(helmet(HELMET_OPTIONS))
 
 // Static assets serving
 if (viteDevServer) {
