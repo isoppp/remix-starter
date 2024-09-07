@@ -18,12 +18,13 @@
 - [x] Scaffdog for component template
 - [x] Renovate for package updates
 - [x] GitHub Actions for basic linting and testing
+- [x] Dockerfile for deployment
+- [x] Custom Express server with support for CSP headers, rate limiting, and more
 
 TODO: put links to each feature
 
 ---
 
-- [ ] Docker for deployment
 - [ ] Auth? (Firebase or self implementation)
 
 ## Development
