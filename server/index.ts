@@ -59,9 +59,42 @@ const app = express()
 // Middleware: Compression
 app.use(compression())
 
+// HTTPS redirection
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next()
+  const proto = req.get('X-Forwarded-Proto')
+  if (proto === 'http') {
+    res.redirect(`https://${req.get('host')}${req.originalUrl}`)
+    return
+  }
+  next()
+})
+
+// Trailing slash redirection for SEO reasons
+// https://github.com/epicweb-dev/epic-stack/discussions/108
+app.get('*', (req, res, next) => {
+  if (req.path.endsWith('/') && req.path.length > 1) {
+    const query = req.url.slice(req.path.length)
+    const safepath = req.path.slice(0, -1).replace(/\/+/g, '/')
+    res.redirect(302, safepath + query)
+  } else {
+    next()
+  }
+})
+
+// Static assets serving
+if (viteDevServer) {
+  app.use(viteDevServer.middlewares)
+} else {
+  app.use('/assets', express.static('build/client/assets', { immutable: true, maxAge: '1y' }))
+  app.use(express.static('build/client', { maxAge: '1h' }))
+}
+
+app.get(['/images/*', '/favicons/*'], (_req, res) => res.status(404).send('Not found'))
+
 // Request logger
 morgan.token('url', (req) => decodeURIComponent(req.url ?? ''))
-app.use(morgan('tiny'))
+app.use(morgan('tiny', {}))
 
 // Trust proxy
 app.set('trust proxy', true)
@@ -80,16 +113,6 @@ app.use((_, res, next) => {
   next()
 })
 app.use(helmet(HELMET_OPTIONS))
-
-// Static assets serving
-if (viteDevServer) {
-  app.use(viteDevServer.middlewares)
-} else {
-  app.use('/assets', express.static('build/client/assets', { immutable: true, maxAge: '1y' }))
-  app.use(express.static('build/client', { maxAge: '1h' }))
-}
-
-app.get(['/images/*', '/favicons/*'], (_req, res) => res.status(404).send('Not found'))
 
 // Rate limiting settings
 const maxMultiple = IS_LOCAL || process.env.PLAYWRIGHT_TEST_BASE_URL ? 10_000 : 1
@@ -117,29 +140,6 @@ app.use((req, res, next) => {
     return strongestRateLimit(req, res, next)
   }
   return generalRateLimit(req, res, next)
-})
-
-// HTTPS redirection
-app.use((req, res, next) => {
-  if (req.method !== 'GET') return next()
-  const proto = req.get('X-Forwarded-Proto')
-  if (proto === 'http') {
-    res.redirect(`https://${req.get('host')}${req.originalUrl}`)
-    return
-  }
-  next()
-})
-
-// Trailing slash redirection for SEO reasons
-// https://github.com/epicweb-dev/epic-stack/discussions/108
-app.get('*', (req, res, next) => {
-  if (req.path.endsWith('/') && req.path.length > 1) {
-    const query = req.url.slice(req.path.length)
-    const safepath = req.path.slice(0, -1).replace(/\/+/g, '/')
-    res.redirect(302, safepath + query)
-  } else {
-    next()
-  }
 })
 
 // Get Remix build
