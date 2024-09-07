@@ -171,8 +171,10 @@ if (!portAvailable && !IS_LOCAL) {
 }
 
 const server = app.listen(portToUse, () => {
+  console.log({ NODE_ENV: process.env.NODE_ENV, APP_ENV: process.env.APP_ENV })
   console.log('🚀 We have liftoff!')
-  console.log(` ${chalk.bold('Local:')} ${chalk.cyan(`http://localhost:${portToUse}`)}`)
+  console.log(` ${chalk.bold('Local:')}            ${chalk.cyan(`http://localhost:${portToUse}`)}`)
+
   console.log(`${chalk.bold('Press Ctrl+C to stop')}`)
 })
 

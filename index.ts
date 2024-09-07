@@ -4,7 +4,6 @@ import * as fs from 'node:fs'
 import chalk from 'chalk'
 import closeWithGrace from 'close-with-grace'
 import sourceMapSupport from 'source-map-support'
-
 sourceMapSupport.install({
   retrieveSourceMap: (source) => {
     // get source file without the `file://` prefix or `?t=...` suffix
@@ -27,8 +26,4 @@ closeWithGrace(async ({ err }) => {
   }
 })
 
-if (process.env.APP_ENV !== 'local') {
-  await import('./server-build/index.js')
-} else {
-  await import('./server/index.ts')
-}
+await import('./server/index.ts')
