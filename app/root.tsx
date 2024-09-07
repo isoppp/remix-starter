@@ -1,11 +1,21 @@
+import { useNonce } from '@/lib/nonce'
 import { trpc } from '@/lib/trpcClient'
+import type { HeadersFunction } from '@remix-run/node'
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react'
 import './tailwind.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { httpBatchLink } from '@trpc/client'
 import type { ReactNode } from 'react'
 
+export const headers: HeadersFunction = ({ loaderHeaders }) => {
+  const headers = {
+    'Server-Timing': loaderHeaders.get('Server-Timing') ?? '',
+  }
+  return headers
+}
+
 export function Layout({ children }: { children: ReactNode }) {
+  const nonce = useNonce()
   return (
     <html lang='en'>
       <head>
@@ -16,8 +26,8 @@ export function Layout({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
-        <ScrollRestoration />
-        <Scripts />
+        <ScrollRestoration nonce={nonce} />
+        <Scripts nonce={nonce} />
       </body>
     </html>
   )
