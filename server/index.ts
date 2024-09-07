@@ -146,7 +146,8 @@ app.use((req, res, next) => {
 async function getBuild() {
   const build = viteDevServer
     ? await viteDevServer.ssrLoadModule('virtual:remix/server-build')
-    : await import('../build/server/index.js')
+    : // @ts-ignore this should exist before running the server in production
+      await import('../build/server/index.js')
   return build as unknown as ServerBuild
 }
 
