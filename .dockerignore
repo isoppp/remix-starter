@@ -33,6 +33,7 @@
 #/prisma
 #/public
 #/server
+/server-build
 #/tailwind.config.ts
 #/tsconfig.json
 /vite.config.sb.ts

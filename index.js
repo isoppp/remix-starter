@@ -26,4 +26,8 @@ closeWithGrace(async ({ err }) => {
   }
 })
 
-await import('./server/index.ts')
+if (process.env.APP_ENV !== 'local') {
+  await import('./server-build/index.js')
+} else {
+  await import('./server/index.ts')
+}
