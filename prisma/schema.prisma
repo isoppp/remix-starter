@@ -26,11 +26,19 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+enum VerificationType {
+  EMAIL
+  PHONE
+}
+
 model Verification {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   type      String
-  token     String
+  to        String
+  token     String    @unique @db.VarChar(128)
+  otpToken  String    @db.VarChar(8)
   expiresAt DateTime
+  usedAt    DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
