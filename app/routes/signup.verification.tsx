@@ -1,17 +1,26 @@
 import { trpc } from '@/lib/trpcClient'
 import type { MetaFunction } from '@remix-run/node'
-import { useParams } from '@remix-run/react'
+import { Link } from '@remix-run/react'
 
 export const meta: MetaFunction = () => {
   return [{ title: 'Signup' }, { name: 'description', content: 'Signup' }]
 }
 
 export default function VerificationToken() {
-  const params = useParams()
-  const { data, isLoading } = trpc.auth.getVerification.useQuery({
-    token: params.token ?? '',
+  const { data, error, isLoading } = trpc.auth.getVerification.useQuery(undefined, {
+    retry: false,
   })
   const mutation = trpc.auth.registerUser.useMutation()
+
+  if (error) {
+    return (
+      <div>
+        <div>
+          Please <Link to='/signup'>sign-up again</Link> from first step or again or check that you already signed up.
+        </div>
+      </div>
+    )
+  }
 
   if (isLoading || !data) return <div>loading...</div>
 

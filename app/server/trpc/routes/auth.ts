@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { VERIFICATION_KEY, verificationSessionStorage } from '@/server/cookie-session/verification-session.server'
 import { createTRPCRouter, publicProcedure } from '@/server/trpc/trpc'
 import { generateRandomNumberString, generateRandomURLString } from '@/server/utils/auth.server'
 import { TRPCError } from '@trpc/server'
@@ -6,21 +7,23 @@ import { addMinutes, isBefore } from 'date-fns'
 import * as v from 'valibot'
 
 export const authRouter = createTRPCRouter({
-  getVerification: publicProcedure
-    .input(
-      v.parser(
-        v.object({
-          token: v.string(),
-        }),
-      ),
-    )
-    .query(async ({ input }) => {
-      return prisma.verification.findUnique({
-        where: {
-          token: input.token,
-        },
+  getVerification: publicProcedure.query(async ({ ctx }) => {
+    const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
+    const token = session.get(VERIFICATION_KEY)
+
+    if (!token) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'unauthorized access',
       })
-    }),
+    }
+
+    return prisma.verification.findUnique({
+      where: {
+        token,
+      },
+    })
+  }),
   signupWithEmail: publicProcedure
     .input(
       v.parser(
@@ -29,10 +32,8 @@ export const authRouter = createTRPCRouter({
         }),
       ),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       // TODO how to handle exsing user
-      // if response something attacker can guess whether user is already registered
-
       const created = await prisma.verification.create({
         data: {
           type: 'email',
@@ -42,8 +43,11 @@ export const authRouter = createTRPCRouter({
           to: input.email,
         },
       })
-      console.log(created)
       console.log('TODO send email: OTP = ', created.otpToken)
+
+      const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
+      session.set(VERIFICATION_KEY, created.token)
+      ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.commitSession(session))
       return created
     }),
   registerUser: publicProcedure
@@ -55,7 +59,7 @@ export const authRouter = createTRPCRouter({
         }),
       ),
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       console.log(input)
       await prisma
         .$transaction(async (prisma) => {
@@ -100,11 +104,26 @@ export const authRouter = createTRPCRouter({
               usedAt: new Date(),
             },
           })
+
+          const existing = await prisma.user.findUnique({
+            where: {
+              email: verification.to,
+            },
+          })
+          if (existing) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'User already exists',
+            })
+          }
           await prisma.user.create({
             data: {
               email: verification.to,
             },
           })
+
+          const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
+          ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.destroySession(session))
         })
         .catch((error) => {
           throw error

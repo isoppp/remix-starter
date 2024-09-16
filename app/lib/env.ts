@@ -2,6 +2,7 @@ import * as v from 'valibot'
 
 const envSchema = v.object({
   APP_ENV: v.picklist(['local', 'test', 'development', 'staging', 'production']),
+  SESSION_SECRET: v.pipe(v.string(), v.minLength(1)),
   // PORT: v.optional(v.number(), 3000),
 })
 

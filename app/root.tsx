@@ -16,6 +16,7 @@ export const headers: HeadersFunction = ({ loaderHeaders }) => {
 
 export function Layout({ children }: { children: ReactNode }) {
   const nonce = useNonce()
+
   return (
     <html lang='en'>
       <head>
