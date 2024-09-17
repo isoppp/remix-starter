@@ -38,6 +38,7 @@ model Verification {
   token     String    @unique @db.VarChar(128)
   expiresAt DateTime
   usedAt    DateTime?
+  attempt   Int       @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

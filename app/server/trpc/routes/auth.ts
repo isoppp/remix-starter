@@ -4,7 +4,6 @@ import { AUTH_KEY, authSessionStorage } from '@/server/cookie-session/auth-sessi
 import { VERIFICATION_KEY, verificationSessionStorage } from '@/server/cookie-session/verification-session.server'
 import { createTRPCRouter, publicProcedure } from '@/server/trpc/trpc'
 import { generateRandomURLString } from '@/server/utils/auth.server'
-import { TRPCError } from '@trpc/server'
 import { addMinutes, isBefore } from 'date-fns'
 import * as v from 'valibot'
 
@@ -69,6 +68,7 @@ export const authRouter = createTRPCRouter({
           to: input.email,
         },
       })
+
       console.log('please signin via', `${env.APP_URL}/signin/verification/${created.token}`)
 
       const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
@@ -99,8 +99,28 @@ export const authRouter = createTRPCRouter({
           },
         })
 
-        if (!verification || verification.usedAt) {
+        if (!verification) {
           return { ok: false }
+        }
+
+        const updatedVerification = await prisma.verification.update({
+          where: {
+            id: verification.id,
+          },
+          data: {
+            attempt: {
+              increment: 1,
+            },
+          },
+        })
+        const attemptExceeded = updatedVerification.attempt > 3
+
+        if (attemptExceeded) {
+          return { ok: false, attemptExceeded }
+        }
+
+        if (verification.usedAt) {
+          return { ok: false, attemptExceeded }
         }
 
         await prisma.verification.update({
@@ -118,14 +138,13 @@ export const authRouter = createTRPCRouter({
           },
         })
 
-        return user ? { ok: true, user } : { ok: false }
+        return user ? { ok: true, user } : { ok: false, attemptExceeded }
       })
 
-      if (!res.user || !res.ok) return { ok: false }
+      if (!res.user || !res.ok) return { ok: false, attemptExceeded: res.attemptExceeded }
 
       const session = await authSessionStorage.getSession(ctx.req.headers.get('Cookie'))
       session.set(AUTH_KEY, res.user.id)
-
       ctx.resHeaders.append('Set-Cookie', await authSessionStorage.commitSession(session))
       ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.destroySession(vSession))
       return { ok: true }
@@ -142,61 +161,76 @@ export const authRouter = createTRPCRouter({
       const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
       const email = session.get(VERIFICATION_KEY)
       if (!email) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: '',
-        })
+        return { ok: false, attemptExceeded: false }
       }
 
-      await prisma
-        .$transaction(async (prisma) => {
-          const verification = await prisma.verification.findUnique({
-            where: {
-              to: email,
-              token: input.token,
-            },
-          })
-          if (!verification || verification.usedAt) {
-            return { ok: false }
-          }
-
-          if (isBefore(verification.expiresAt, new Date())) {
-            return { ok: false }
-          }
-
-          await prisma.verification.update({
-            where: {
-              id: verification.id,
-            },
-            data: {
-              usedAt: new Date(),
-            },
-          })
-
-          const existing = await prisma.user.findUnique({
-            where: {
-              email: verification.to,
-            },
-          })
-          if (existing) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'User already exists',
-            })
-          }
-          await prisma.user.create({
-            data: {
-              email: verification.to,
-            },
-          })
-
-          const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-          ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.destroySession(session))
-        })
-        .catch((error) => {
-          throw error
+      const txRes = await prisma.$transaction(async (prisma) => {
+        const verification = await prisma.verification.findUnique({
+          where: {
+            to: email,
+            token: input.token,
+          },
         })
 
+        if (!verification) {
+          return { ok: false, attemptExceeded: false }
+        }
+
+        const updatedVerification = await prisma.verification.update({
+          where: {
+            id: verification.id,
+          },
+          data: {
+            attempt: {
+              increment: 1,
+            },
+          },
+        })
+        const attemptExceeded = updatedVerification.attempt > 3
+
+        if (attemptExceeded) {
+          return { ok: false, attemptExceeded }
+        }
+
+        if (verification.usedAt) {
+          return { ok: false, attemptExceeded }
+        }
+
+        if (isBefore(verification.expiresAt, new Date())) {
+          return { ok: false, attemptExceeded }
+        }
+
+        await prisma.verification.update({
+          where: {
+            id: verification.id,
+          },
+          data: {
+            usedAt: new Date(),
+          },
+        })
+
+        const existing = await prisma.user.findUnique({
+          where: {
+            email: verification.to,
+          },
+        })
+        if (existing) {
+          return { ok: false, attemptExceeded }
+        }
+        await prisma.user.create({
+          data: {
+            email: verification.to,
+          },
+        })
+
+        return {
+          ok: true,
+        }
+      })
+
+      if (!txRes.ok) return txRes
+
+      ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.destroySession(session))
       return {
         ok: true,
       }
