@@ -1,29 +1,13 @@
+import { env } from '@/lib/env'
 import { prisma } from '@/lib/prisma'
 import { VERIFICATION_KEY, verificationSessionStorage } from '@/server/cookie-session/verification-session.server'
 import { createTRPCRouter, publicProcedure } from '@/server/trpc/trpc'
-import { generateRandomNumberString, generateRandomURLString } from '@/server/utils/auth.server'
+import { generateRandomURLString } from '@/server/utils/auth.server'
 import { TRPCError } from '@trpc/server'
 import { addMinutes, isBefore } from 'date-fns'
 import * as v from 'valibot'
 
 export const authRouter = createTRPCRouter({
-  getVerification: publicProcedure.query(async ({ ctx }) => {
-    const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-    const token = session.get(VERIFICATION_KEY)
-
-    if (!token) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'unauthorized access',
-      })
-    }
-
-    return prisma.verification.findUnique({
-      where: {
-        token,
-      },
-    })
-  }),
   signupWithEmail: publicProcedure
     .input(
       v.parser(
@@ -37,16 +21,15 @@ export const authRouter = createTRPCRouter({
       const created = await prisma.verification.create({
         data: {
           type: 'email',
-          token: generateRandomURLString(),
-          otpToken: generateRandomNumberString(),
+          token: generateRandomURLString(128),
           expiresAt: addMinutes(new Date(), 5),
           to: input.email,
         },
       })
-      console.log('TODO send email: OTP = ', created.otpToken)
+      console.log('please signup via', `${env.APP_URL}/signup/verification/${created.token}`)
 
       const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-      session.set(VERIFICATION_KEY, created.token)
+      session.set(VERIFICATION_KEY, input.email)
       ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.commitSession(session))
       return created
     }),
@@ -55,12 +38,19 @@ export const authRouter = createTRPCRouter({
       v.parser(
         v.object({
           token: v.pipe(v.string(), v.minLength(1)),
-          otpToken: v.pipe(v.string(), v.minLength(1)),
         }),
       ),
     )
     .mutation(async ({ input, ctx }) => {
-      console.log(input)
+      const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
+      const email = session.get(VERIFICATION_KEY)
+      if (!email) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: '',
+        })
+      }
+
       await prisma
         .$transaction(async (prisma) => {
           const verification = await prisma.verification.findUnique({

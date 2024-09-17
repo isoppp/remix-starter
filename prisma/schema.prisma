@@ -36,7 +36,6 @@ model Verification {
   type      String
   to        String
   token     String    @unique @db.VarChar(128)
-  otpToken  String    @db.VarChar(8)
   expiresAt DateTime
   usedAt    DateTime?
 
