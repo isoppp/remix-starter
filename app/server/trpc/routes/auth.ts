@@ -18,7 +18,17 @@ export const authRouter = createTRPCRouter({
       ),
     )
     .mutation(async ({ input, ctx }) => {
-      // TODO how to handle exsing user
+      const existingUser = await prisma.user.findUnique({
+        where: {
+          email: input.email,
+        },
+      })
+
+      // Don't send any detailed message but may be good to send sign-in email instead.
+      if (existingUser) {
+        return { ok: true }
+      }
+
       const created = await prisma.verification.create({
         data: {
           type: 'email',
@@ -32,7 +42,7 @@ export const authRouter = createTRPCRouter({
       const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
       session.set(VERIFICATION_KEY, input.email)
       ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.commitSession(session))
-      return created
+      return { ok: true }
     }),
   signInWithEmail: publicProcedure
     .input(
@@ -81,33 +91,46 @@ export const authRouter = createTRPCRouter({
         return { ok: false }
       }
 
-      const verification = await prisma.verification.findUnique({
-        where: {
-          to: email,
-          token: input.token,
-        },
+      const res = await prisma.$transaction(async (prisma) => {
+        const verification = await prisma.verification.findUnique({
+          where: {
+            to: email,
+            token: input.token,
+          },
+        })
+
+        if (!verification || verification.usedAt) {
+          return { ok: false }
+        }
+
+        await prisma.verification.update({
+          where: {
+            id: verification.id,
+          },
+          data: {
+            usedAt: new Date(),
+          },
+        })
+
+        const user = await prisma.user.findUnique({
+          where: {
+            email: email,
+          },
+        })
+
+        return user ? { ok: true, user } : { ok: false }
       })
 
-      if (!verification) {
-        return { ok: false }
-      }
-
-      const user = await prisma.user.findUnique({
-        where: {
-          email: email,
-        },
-      })
-
-      if (!user) return { ok: false }
+      if (!res.user || !res.ok) return { ok: false }
 
       const session = await authSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-      session.set(AUTH_KEY, user.id)
+      session.set(AUTH_KEY, res.user.id)
 
       ctx.resHeaders.append('Set-Cookie', await authSessionStorage.commitSession(session))
       ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.destroySession(vSession))
       return { ok: true }
     }),
-  registerUser: publicProcedure
+  signUpVerification: publicProcedure
     .input(
       v.parser(
         v.object({
@@ -133,32 +156,12 @@ export const authRouter = createTRPCRouter({
               token: input.token,
             },
           })
-          if (!verification) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Invalid token',
-            })
-          }
-
-          if (verification.usedAt) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Token already used',
-            })
+          if (!verification || verification.usedAt) {
+            return { ok: false }
           }
 
           if (isBefore(verification.expiresAt, new Date())) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Expired',
-            })
-          }
-
-          const isValid = verification?.otpToken === input.otpToken
-          if (!isValid) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-            })
+            return { ok: false }
           }
 
           await prisma.verification.update({

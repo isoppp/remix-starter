@@ -8,7 +8,7 @@ export const meta: MetaFunction = () => {
 
 export default function VerificationToken() {
   const params = useParams()
-  const mutation = trpc.auth.registerUser.useMutation()
+  const mutation = trpc.auth.signUpVerification.useMutation()
 
   const onSubmit = async (e) => {
     e.preventDefault()
