@@ -1,5 +1,6 @@
 import { env } from '@/lib/env'
 import { prisma } from '@/lib/prisma'
+import { AUTH_KEY, authSessionStorage } from '@/server/cookie-session/auth-session.server'
 import { VERIFICATION_KEY, verificationSessionStorage } from '@/server/cookie-session/verification-session.server'
 import { createTRPCRouter, publicProcedure } from '@/server/trpc/trpc'
 import { generateRandomURLString } from '@/server/utils/auth.server'
@@ -33,6 +34,79 @@ export const authRouter = createTRPCRouter({
       ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.commitSession(session))
       return created
     }),
+  signInWithEmail: publicProcedure
+    .input(
+      v.parser(
+        v.object({
+          email: v.pipe(v.string(), v.email()),
+        }),
+      ),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const user = await prisma.user.findUnique({
+        where: {
+          email: input.email,
+        },
+      })
+
+      if (!user) return { ok: true }
+
+      const created = await prisma.verification.create({
+        data: {
+          type: 'email',
+          token: generateRandomURLString(128),
+          expiresAt: addMinutes(new Date(), 5),
+          to: input.email,
+        },
+      })
+      console.log('please signin via', `${env.APP_URL}/signin/verification/${created.token}`)
+
+      const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
+      session.set(VERIFICATION_KEY, input.email)
+      ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.commitSession(session))
+      return { ok: true }
+    }),
+  signInVerification: publicProcedure
+    .input(
+      v.parser(
+        v.object({
+          token: v.pipe(v.string(), v.minLength(1)),
+        }),
+      ),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const vSession = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
+      const email = vSession.get(VERIFICATION_KEY)
+      if (!email) {
+        return { ok: false }
+      }
+
+      const verification = await prisma.verification.findUnique({
+        where: {
+          to: email,
+          token: input.token,
+        },
+      })
+
+      if (!verification) {
+        return { ok: false }
+      }
+
+      const user = await prisma.user.findUnique({
+        where: {
+          email: email,
+        },
+      })
+
+      if (!user) return { ok: false }
+
+      const session = await authSessionStorage.getSession(ctx.req.headers.get('Cookie'))
+      session.set(AUTH_KEY, user.id)
+
+      ctx.resHeaders.append('Set-Cookie', await authSessionStorage.commitSession(session))
+      ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.destroySession(vSession))
+      return { ok: true }
+    }),
   registerUser: publicProcedure
     .input(
       v.parser(
@@ -55,6 +129,7 @@ export const authRouter = createTRPCRouter({
         .$transaction(async (prisma) => {
           const verification = await prisma.verification.findUnique({
             where: {
+              to: email,
               token: input.token,
             },
           })

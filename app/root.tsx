@@ -30,8 +30,8 @@ export function Layout({ children }: { children: ReactNode }) {
           {[
             { to: '/', children: 'Home' },
             { to: '/signup', children: 'Signup' },
-            { to: '/login', children: 'Login' },
-            { to: '/logout', children: 'Logout' },
+            { to: '/signin', children: 'Signin' },
+            { to: '/signout', children: 'Signout' },
             { to: '/authenticated', children: 'Authenticated' },
           ].map((link) => (
             <Link key={link.to} to={link.to}>
