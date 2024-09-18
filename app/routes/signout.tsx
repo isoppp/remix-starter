@@ -9,7 +9,19 @@ export const meta: MetaFunction = () => {
 export const loader = async (ctx: LoaderFunctionArgs) => {
   const session = await authSessionStorage.getSession(ctx.request.headers.get('Cookie'))
   const sessionId = session.get(AUTH_KEY)
-  await prisma.session.delete({ where: { id: sessionId } })
+  if (!sessionId) {
+    return redirect('/signin')
+  }
+
+  const existing = await prisma.session.findUnique({ where: { id: sessionId } })
+  if (!existing) {
+    return redirect('/signin', {
+      headers: {
+        'Set-Cookie': await authSessionStorage.destroySession(session),
+      },
+    })
+  }
+
   return redirect('/signin', {
     headers: {
       'Set-Cookie': await authSessionStorage.destroySession(session),
@@ -18,5 +30,5 @@ export const loader = async (ctx: LoaderFunctionArgs) => {
 }
 
 export default function Signout() {
-  return <div>Logout</div>
+  return <div>loading...</div>
 }

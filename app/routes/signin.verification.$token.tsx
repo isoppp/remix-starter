@@ -16,7 +16,7 @@ export default function VerificationToken() {
     const res = await mutation.mutateAsync({ token: params.token })
     if (res.ok) {
       console.log('signin success!')
-      navigate('/authenticated')
+      navigate('/authenticated-example')
     } else {
       console.log('failed to signin')
     }

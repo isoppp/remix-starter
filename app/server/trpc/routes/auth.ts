@@ -2,12 +2,30 @@ import { env } from '@/lib/env'
 import { prisma } from '@/lib/prisma'
 import { AUTH_KEY, AUTH_SESSION_EXPIRATION_SEC, authSessionStorage } from '@/server/cookie-session/auth-session.server'
 import { VERIFICATION_KEY, verificationSessionStorage } from '@/server/cookie-session/verification-session.server'
-import { createTRPCRouter, publicProcedure } from '@/server/trpc/trpc'
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/trpc/trpc'
 import { generateRandomURLString } from '@/server/utils/auth.server'
 import { addMinutes, addSeconds, isBefore } from 'date-fns'
 import * as v from 'valibot'
 
 export const authRouter = createTRPCRouter({
+  isSignedIn: protectedProcedure.query(async ({ ctx }) => {
+    const session = await authSessionStorage.getSession(ctx.req.headers.get('Cookie'))
+    const sessionId = session.get(AUTH_KEY)
+    if (!sessionId) return { ok: false }
+
+    const row = await prisma.session.findUnique({
+      where: {
+        id: sessionId,
+      },
+    })
+
+    if (!row || isBefore(row?.expiresAt, new Date())) {
+      ctx.resHeaders.append('Set-Cookie', await authSessionStorage.destroySession(session))
+      return { ok: false }
+    }
+
+    return { ok: true }
+  }),
   signupWithEmail: publicProcedure
     .input(
       v.parser(

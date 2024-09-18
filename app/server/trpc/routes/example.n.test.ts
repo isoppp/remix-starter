@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { type AppRouter, createCaller } from '@/server/trpc'
-import { createContextInner } from '@/server/trpc/context'
+import { createContextInner } from '@/server/trpc/trpc'
 import type { inferProcedureInput } from '@trpc/server'
 
 test('creates example record', async () => {

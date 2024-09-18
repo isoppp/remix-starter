@@ -17,7 +17,7 @@ export default function VerificationToken() {
     if (!res.ok) return console.log('failed to register')
 
     console.log('created and logged-in')
-    navigate('/authenticated')
+    navigate('/authenticated-example')
   }
 
   return (

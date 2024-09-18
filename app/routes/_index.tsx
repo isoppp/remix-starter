@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import { trpc } from '@/lib/trpcClient'
-import { createInternalTrpcServer } from '@/server/trpc'
+import { createTrpcServerForLoader } from '@/server/trpc'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 
@@ -9,7 +9,7 @@ export const meta: MetaFunction = () => {
 }
 
 export const loader = async (ctx: LoaderFunctionArgs) => {
-  const trpcServer = createInternalTrpcServer(ctx.request)
+  const trpcServer = createTrpcServerForLoader(ctx.request)
   const message = await trpcServer.example.hello()
   return {
     message,
