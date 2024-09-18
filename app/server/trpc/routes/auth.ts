@@ -4,6 +4,7 @@ import { AUTH_KEY, AUTH_SESSION_EXPIRATION_SEC, authSessionStorage } from '@/ser
 import { VERIFICATION_KEY, verificationSessionStorage } from '@/server/cookie-session/verification-session.server'
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/trpc/trpc'
 import { generateRandomURLString } from '@/server/utils/auth.server'
+import { TRPCError } from '@trpc/server'
 import { addMinutes, addSeconds, isBefore } from 'date-fns'
 import * as v from 'valibot'
 
@@ -77,6 +78,25 @@ export const authRouter = createTRPCRouter({
       })
 
       if (!user) return { ok: true }
+
+      const hasValidVerification = await prisma.verification.findFirst({
+        where: {
+          to: input.email,
+          expiresAt: {
+            gte: new Date(),
+          },
+          attempt: {
+            lte: 3,
+          },
+        },
+      })
+
+      if (hasValidVerification) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Email is already sent. Please check your email for verification',
+        })
+      }
 
       const created = await prisma.verification.create({
         data: {
