@@ -6,7 +6,6 @@ import crypto from 'node:crypto'
 import { createRequestHandler } from '@remix-run/express'
 import type { ServerBuild } from '@remix-run/node'
 import chalk from 'chalk'
-import closeWithGrace from 'close-with-grace'
 import compression from 'compression'
 import express from 'express'
 import rateLimit from 'express-rate-limit'
@@ -16,17 +15,7 @@ import morgan from 'morgan'
 
 const IS_LOCAL = process.env.APP_ENV === 'local'
 const ALLOW_INDEXING = false
-const STRONGEST_RATE_LIMIT_PATH: string[] = [
-  // '/login',
-  // '/signup',
-  // '/verify',
-  // '/admin',
-  // '/onboarding',
-  // '/reset-password',
-  // '/settings/profile',
-  // '/resources/login',
-  // '/resources/verify',
-]
+const STRONGEST_RATE_LIMIT_PATH: string[] = ['/signin', '/signup']
 
 const HELMET_OPTIONS: HelmetOptions = {
   xPoweredBy: false,
