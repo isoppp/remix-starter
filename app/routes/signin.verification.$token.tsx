@@ -15,10 +15,10 @@ export default function VerificationToken() {
     e.preventDefault()
     const res = await mutation.mutateAsync({ token: params.token })
     if (res.ok) {
-      alert('signin success!')
+      console.log('signin success!')
       navigate('/authenticated')
     } else {
-      alert('error!')
+      console.log('failed to signin')
     }
   }
 

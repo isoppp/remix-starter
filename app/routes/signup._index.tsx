@@ -31,7 +31,7 @@ export default function Signup() {
   const onSubmit = useCallback(
     async (values: Infer<typeof schema>) => {
       mutation.mutate(values)
-      alert('please check you email!')
+      console.log('please check you email!')
     },
     [mutation],
   )

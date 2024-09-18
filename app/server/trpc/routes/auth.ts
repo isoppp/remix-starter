@@ -1,10 +1,10 @@
 import { env } from '@/lib/env'
 import { prisma } from '@/lib/prisma'
-import { AUTH_KEY, authSessionStorage } from '@/server/cookie-session/auth-session.server'
+import { AUTH_KEY, AUTH_SESSION_EXPIRATION_SEC, authSessionStorage } from '@/server/cookie-session/auth-session.server'
 import { VERIFICATION_KEY, verificationSessionStorage } from '@/server/cookie-session/verification-session.server'
 import { createTRPCRouter, publicProcedure } from '@/server/trpc/trpc'
 import { generateRandomURLString } from '@/server/utils/auth.server'
-import { addMinutes, isBefore } from 'date-fns'
+import { addMinutes, addSeconds, isBefore } from 'date-fns'
 import * as v from 'valibot'
 
 export const authRouter = createTRPCRouter({
@@ -132,19 +132,31 @@ export const authRouter = createTRPCRouter({
           },
         })
 
-        const user = await prisma.user.findUnique({
+        const createdUser = await prisma.user.findUnique({
           where: {
             email: email,
           },
         })
 
-        return user ? { ok: true, user } : { ok: false, attemptExceeded }
+        if (!createdUser) return { ok: false, attemptExceeded }
+
+        const createdSession = await prisma.session.create({
+          data: {
+            expiresAt: addSeconds(new Date(), AUTH_SESSION_EXPIRATION_SEC),
+            userId: createdUser.id,
+          },
+        })
+
+        return {
+          ok: true,
+          sessionId: createdSession.id,
+        }
       })
 
-      if (!res.user || !res.ok) return { ok: false, attemptExceeded: res.attemptExceeded }
+      if (!res.ok) return { ok: false, attemptExceeded: res.attemptExceeded }
 
       const session = await authSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-      session.set(AUTH_KEY, res.user.id)
+      session.set(AUTH_KEY, res.sessionId)
       ctx.resHeaders.append('Set-Cookie', await authSessionStorage.commitSession(session))
       ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.destroySession(vSession))
       return { ok: true }
@@ -158,8 +170,8 @@ export const authRouter = createTRPCRouter({
       ),
     )
     .mutation(async ({ input, ctx }) => {
-      const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-      const email = session.get(VERIFICATION_KEY)
+      const vSession = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
+      const email = vSession.get(VERIFICATION_KEY)
       if (!email) {
         return { ok: false, attemptExceeded: false }
       }
@@ -217,20 +229,31 @@ export const authRouter = createTRPCRouter({
         if (existing) {
           return { ok: false, attemptExceeded }
         }
-        await prisma.user.create({
+        const createdUser = await prisma.user.create({
           data: {
             email: verification.to,
           },
         })
 
+        const createdSession = await prisma.session.create({
+          data: {
+            expiresAt: addSeconds(new Date(), AUTH_SESSION_EXPIRATION_SEC),
+            userId: createdUser.id,
+          },
+        })
+
         return {
           ok: true,
+          sessionId: createdSession.id,
         }
       })
 
       if (!txRes.ok) return txRes
 
-      ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.destroySession(session))
+      const session = await authSessionStorage.getSession(ctx.req.headers.get('Cookie'))
+      session.set(AUTH_KEY, txRes.sessionId)
+      ctx.resHeaders.append('Set-Cookie', await authSessionStorage.commitSession(session))
+      ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.destroySession(vSession))
       return {
         ok: true,
       }
