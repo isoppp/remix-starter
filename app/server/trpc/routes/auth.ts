@@ -1,7 +1,16 @@
 import { env } from '@/lib/env'
 import { prisma } from '@/lib/prisma'
-import { AUTH_KEY, AUTH_SESSION_EXPIRATION_SEC, authSessionStorage } from '@/server/cookie-session/auth-session.server'
-import { VERIFICATION_KEY, verificationSessionStorage } from '@/server/cookie-session/verification-session.server'
+import {
+  AUTH_SESSION_EXPIRATION_SEC,
+  commitAuthSessionWithValue,
+  destroyStrAuthSession,
+  getAuthSessionId,
+} from '@/server/cookie-session/auth-session.server'
+import {
+  commitVerificationSessionWithValue,
+  destroyStrVerificationSession,
+  getVerificationSessionEmail,
+} from '@/server/cookie-session/verification-session.server'
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/trpc/trpc'
 import { generateRandomURLString } from '@/server/utils/auth.server'
 import { TRPCError } from '@trpc/server'
@@ -10,8 +19,7 @@ import * as v from 'valibot'
 
 export const authRouter = createTRPCRouter({
   isSignedIn: protectedProcedure.query(async ({ ctx }) => {
-    const session = await authSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-    const sessionId = session.get(AUTH_KEY)
+    const sessionId = await getAuthSessionId(ctx.req)
     if (!sessionId) return { ok: false }
 
     const row = await prisma.session.findUnique({
@@ -21,7 +29,7 @@ export const authRouter = createTRPCRouter({
     })
 
     if (!row || isBefore(row?.expiresAt, new Date())) {
-      ctx.resHeaders.append('Set-Cookie', await authSessionStorage.destroySession(session))
+      ctx.resHeaders.append('Set-Cookie', await destroyStrAuthSession(ctx.req))
       return { ok: false }
     }
 
@@ -57,9 +65,7 @@ export const authRouter = createTRPCRouter({
       })
       console.log('please signup via', `${env.APP_URL}/signup/verification/${created.token}`)
 
-      const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-      session.set(VERIFICATION_KEY, input.email)
-      ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.commitSession(session))
+      ctx.resHeaders.append('Set-Cookie', await commitVerificationSessionWithValue(ctx.req, input.email))
       return { ok: true }
     }),
   signInWithEmail: publicProcedure
@@ -109,9 +115,7 @@ export const authRouter = createTRPCRouter({
 
       console.log('please signin via', `${env.APP_URL}/signin/verification/${created.token}`)
 
-      const session = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-      session.set(VERIFICATION_KEY, input.email)
-      ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.commitSession(session))
+      ctx.resHeaders.append('Set-Cookie', await commitVerificationSessionWithValue(ctx.req, input.email))
       return { ok: true }
     }),
   signInVerification: publicProcedure
@@ -123,8 +127,7 @@ export const authRouter = createTRPCRouter({
       ),
     )
     .mutation(async ({ input, ctx }) => {
-      const vSession = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-      const email = vSession.get(VERIFICATION_KEY)
+      const email = await getVerificationSessionEmail(ctx.req)
       if (!email) {
         return { ok: false }
       }
@@ -193,10 +196,8 @@ export const authRouter = createTRPCRouter({
 
       if (!res.ok) return { ok: false, attemptExceeded: res.attemptExceeded }
 
-      const session = await authSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-      session.set(AUTH_KEY, res.sessionId)
-      ctx.resHeaders.append('Set-Cookie', await authSessionStorage.commitSession(session))
-      ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.destroySession(vSession))
+      ctx.resHeaders.append('Set-Cookie', await commitAuthSessionWithValue(ctx.req, res.sessionId))
+      ctx.resHeaders.append('Set-Cookie', await destroyStrVerificationSession(ctx.req))
       return { ok: true }
     }),
   signUpVerification: publicProcedure
@@ -208,8 +209,7 @@ export const authRouter = createTRPCRouter({
       ),
     )
     .mutation(async ({ input, ctx }) => {
-      const vSession = await verificationSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-      const email = vSession.get(VERIFICATION_KEY)
+      const email = await getVerificationSessionEmail(ctx.req)
       if (!email) {
         return { ok: false, attemptExceeded: false }
       }
@@ -288,10 +288,8 @@ export const authRouter = createTRPCRouter({
 
       if (!txRes.ok) return txRes
 
-      const session = await authSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-      session.set(AUTH_KEY, txRes.sessionId)
-      ctx.resHeaders.append('Set-Cookie', await authSessionStorage.commitSession(session))
-      ctx.resHeaders.append('Set-Cookie', await verificationSessionStorage.destroySession(vSession))
+      ctx.resHeaders.append('Set-Cookie', await commitAuthSessionWithValue(ctx.req, txRes.sessionId))
+      ctx.resHeaders.append('Set-Cookie', await destroyStrVerificationSession(ctx.req))
       return {
         ok: true,
       }

@@ -1,6 +1,6 @@
 import { env } from '@/lib/env'
 import { prisma } from '@/lib/prisma'
-import { AUTH_KEY, authSessionStorage } from '@/server/cookie-session/auth-session.server'
+import { getAuthSessionId } from '@/server/cookie-session/auth-session.server'
 import { TRPCError, initTRPC } from '@trpc/server'
 
 export async function createContext({
@@ -34,8 +34,7 @@ export const t = initTRPC.context<Context>().create({
 
 /** Reusable middleware that enforces users are logged in before running the procedure. */
 const enforceUserIsAuthed = t.middleware(async ({ ctx, next }) => {
-  const session = await authSessionStorage.getSession(ctx.req.headers.get('Cookie'))
-  const sessionId = session.get(AUTH_KEY)
+  const sessionId = await getAuthSessionId(ctx.req)
 
   if (!sessionId) {
     throw new TRPCError({ code: 'UNAUTHORIZED' })

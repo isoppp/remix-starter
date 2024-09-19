@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { AUTH_KEY, authSessionStorage } from '@/server/cookie-session/auth-session.server'
+import { destroyStrAuthSession, getAuthSessionId } from '@/server/cookie-session/auth-session.server'
 import { type LoaderFunctionArgs, type MetaFunction, redirect } from '@remix-run/node'
 
 export const meta: MetaFunction = () => {
@@ -7,8 +7,7 @@ export const meta: MetaFunction = () => {
 }
 
 export const loader = async (ctx: LoaderFunctionArgs) => {
-  const session = await authSessionStorage.getSession(ctx.request.headers.get('Cookie'))
-  const sessionId = session.get(AUTH_KEY)
+  const sessionId = await getAuthSessionId(ctx.request)
   if (!sessionId) {
     return redirect('/signin')
   }
@@ -17,14 +16,14 @@ export const loader = async (ctx: LoaderFunctionArgs) => {
   if (!existing) {
     return redirect('/signin', {
       headers: {
-        'Set-Cookie': await authSessionStorage.destroySession(session),
+        'Set-Cookie': await destroyStrAuthSession(ctx.request),
       },
     })
   }
 
   return redirect('/signin', {
     headers: {
-      'Set-Cookie': await authSessionStorage.destroySession(session),
+      'Set-Cookie': await destroyStrAuthSession(ctx.request),
     },
   })
 }
