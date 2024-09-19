@@ -5,7 +5,8 @@ import { Authenticated } from './Authenticated'
 
 type ComponentProps = ComponentPropsWithoutRef<typeof Authenticated>
 const renderComponent = (props?: Partial<ComponentProps>) => {
-  return render(<Authenticated {...(props ?? {})} />)
+  // biome-ignore lint/correctness/noChildrenProp: <explanation>
+  return render(<Authenticated children={'children'} {...(props ?? {})} />)
 }
 
 describe('Authenticated', () => {

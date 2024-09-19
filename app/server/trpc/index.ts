@@ -21,4 +21,7 @@ export const handler = (request: Request, endpoint = '/api/trpc') => {
 
 export const createCaller = t.createCallerFactory(appRouter)
 
-export const createTrpcServerForLoader = (req: Request) => createCaller(() => createInternalContext({ req }))
+export const createTrpcServerForLoader = (req: Request) =>
+  createCaller(() => {
+    return createInternalContext({ req })
+  })

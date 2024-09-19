@@ -64,8 +64,12 @@ export const protectedProcedure = t.procedure.use(enforceUserIsAuthed)
 
 export const createTRPCRouter = t.router
 
-export async function createContextInner() {
-  return {}
+export async function createTestContext() {
+  return {
+    req: new Request('http://localhost:3000'),
+    resHeaders: new Headers(),
+    user: null,
+  }
 }
 
 export function createInternalContext({
@@ -73,7 +77,7 @@ export function createInternalContext({
 }: {
   req: Request
 }) {
-  return { req }
+  return { req, resHeaders: new Headers(), user: null }
 }
 
 export type InternalContext = Awaited<ReturnType<typeof createInternalContext>>
