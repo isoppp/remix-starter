@@ -11,7 +11,7 @@ export const Authenticated: FC<Props> = ({ children }) => {
   const { data, isLoading, error } = trpc.auth.isSignedIn.useQuery(undefined, { retry: false })
 
   useEffect(() => {
-    if ((!isLoading && data?.ok === false) || error) {
+    if ((!isLoading && data && !data.isSignedIn) || error) {
       navigate('/signin')
     }
   }, [error, navigate, data, isLoading])
