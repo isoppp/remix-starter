@@ -1,6 +1,6 @@
+import { getAuthSessionId } from '@/.server/cookie-session/auth-session'
 import { env } from '@/lib/env'
 import { prisma } from '@/lib/prisma'
-import { getAuthSessionId } from '@/server/cookie-session/auth-session.server'
 import { TRPCError, initTRPC } from '@trpc/server'
 
 export async function createContext({

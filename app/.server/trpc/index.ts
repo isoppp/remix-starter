@@ -1,5 +1,5 @@
-import { authRouter } from '@/server/trpc/routes/auth'
-import { exampleRouter } from '@/server/trpc/routes/example'
+import { authRouter } from '@/.server/trpc/routes/auth'
+import { exampleRouter } from '@/.server/trpc/routes/example'
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
 import { createContext, createInternalContext, router, t } from './trpc'
 

@@ -1,6 +1,6 @@
+import { createTrpcServerForLoader } from '@/.server/trpc'
 import { Badge } from '@/components/ui/badge'
 import { trpc } from '@/lib/trpcClient'
-import { createTrpcServerForLoader } from '@/server/trpc'
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
 

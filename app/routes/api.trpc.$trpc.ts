@@ -1,4 +1,4 @@
-import { handler } from '@/server/trpc'
+import { handler } from '@/.server/trpc'
 import type { ActionFunction, LoaderFunction } from '@remix-run/node'
 
 export const loader: LoaderFunction = async (args) => {

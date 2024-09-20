@@ -1,5 +1,5 @@
+import { createTRPCRouter, publicProcedure } from '@/.server/trpc/trpc'
 import { prisma } from '@/lib/prisma'
-import { createTRPCRouter, publicProcedure } from '@/server/trpc/trpc'
 import * as v from 'valibot'
 
 export const exampleRouter = createTRPCRouter({

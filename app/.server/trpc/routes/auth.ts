@@ -1,18 +1,14 @@
-import { env } from '@/lib/env'
-import { prisma } from '@/lib/prisma'
 import {
   AUTH_SESSION_EXPIRATION_SEC,
   commitAuthSessionWithValue,
   destroyStrAuthSession,
   getAuthSessionId,
-} from '@/server/cookie-session/auth-session.server'
-import {
-  commitVerificationSessionWithValue,
-  destroyStrVerificationSession,
-  getVerificationSessionEmail,
-} from '@/server/cookie-session/verification-session.server'
-import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/server/trpc/trpc'
-import { generateRandomURLString } from '@/server/utils/auth.server'
+} from '@/.server/cookie-session/auth-session'
+import { getVerificationSessionEmail } from '@/.server/cookie-session/verification-session'
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/.server/trpc/trpc'
+import { generateRandomURLString } from '@/.server/utils/auth.server'
+import { env } from '@/lib/env'
+import { prisma } from '@/lib/prisma'
 import { TRPCError } from '@trpc/server'
 import { addMinutes, addSeconds, isBefore } from 'date-fns'
 import * as v from 'valibot'

@@ -1,5 +1,5 @@
+import { destroyStrAuthSession, getAuthSessionId } from '@/.server/cookie-session/auth-session'
 import { prisma } from '@/lib/prisma'
-import { destroyStrAuthSession, getAuthSessionId } from '@/server/cookie-session/auth-session.server'
 import { type LoaderFunctionArgs, type MetaFunction, redirect } from '@remix-run/node'
 
 export const meta: MetaFunction = () => {
