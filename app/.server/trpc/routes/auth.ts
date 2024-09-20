@@ -4,8 +4,12 @@ import {
   destroyStrAuthSession,
   getAuthSessionId,
 } from '@/.server/cookie-session/auth-session'
-import { getVerificationSessionEmail } from '@/.server/cookie-session/verification-session'
-import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/.server/trpc/trpc'
+import {
+  commitVerificationSessionWithValue,
+  destroyStrVerificationSession,
+  getVerificationSessionEmail,
+} from '@/.server/cookie-session/verification-session'
+import { createTRPCRouter, p } from '@/.server/trpc/trpc'
 import { generateRandomURLString } from '@/.server/utils/auth.server'
 import { env } from '@/lib/env'
 import { prisma } from '@/lib/prisma'
@@ -14,7 +18,7 @@ import { addMinutes, addSeconds, isBefore } from 'date-fns'
 import * as v from 'valibot'
 
 export const authRouter = createTRPCRouter({
-  isSignedIn: protectedProcedure.query(async ({ ctx }) => {
+  isSignedIn: p.auth.query(async ({ ctx }) => {
     const sessionId = await getAuthSessionId(ctx.req)
     if (!sessionId) return { ok: false }
 
@@ -31,7 +35,7 @@ export const authRouter = createTRPCRouter({
 
     return { ok: true }
   }),
-  signupWithEmail: publicProcedure
+  signupWithEmail: p.public
     .input(
       v.parser(
         v.object({
@@ -64,7 +68,7 @@ export const authRouter = createTRPCRouter({
       ctx.resHeaders.append('Set-Cookie', await commitVerificationSessionWithValue(ctx.req, input.email))
       return { ok: true }
     }),
-  signInWithEmail: publicProcedure
+  signInWithEmail: p.public
     .input(
       v.parser(
         v.object({
@@ -114,7 +118,7 @@ export const authRouter = createTRPCRouter({
       ctx.resHeaders.append('Set-Cookie', await commitVerificationSessionWithValue(ctx.req, input.email))
       return { ok: true }
     }),
-  signInVerification: publicProcedure
+  signInVerification: p.public
     .input(
       v.parser(
         v.object({
@@ -196,7 +200,7 @@ export const authRouter = createTRPCRouter({
       ctx.resHeaders.append('Set-Cookie', await destroyStrVerificationSession(ctx.req))
       return { ok: true }
     }),
-  signUpVerification: publicProcedure
+  signUpVerification: p.public
     .input(
       v.parser(
         v.object({

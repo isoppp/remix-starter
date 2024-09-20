@@ -1,7 +1,7 @@
 import { authRouter } from '@/.server/trpc/routes/auth'
 import { exampleRouter } from '@/.server/trpc/routes/example'
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
-import { createContext, createInternalContext, router, t } from './trpc'
+import { createContext, createLoaderContext, router, t } from './trpc'
 
 const appRouter = router({
   example: exampleRouter,
@@ -23,5 +23,5 @@ export const createCaller = t.createCallerFactory(appRouter)
 
 export const createTrpcServerForLoader = (req: Request) =>
   createCaller(() => {
-    return createInternalContext({ req })
+    return createLoaderContext({ req })
   })
