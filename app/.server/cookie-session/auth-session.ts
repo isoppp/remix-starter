@@ -1,3 +1,4 @@
+import type { IncomingMessage } from 'node:http'
 import { env } from '@/lib/env'
 import { createCookieSessionStorage } from '@remix-run/node'
 
@@ -29,4 +30,10 @@ export const commitAuthSessionWithValue = async (req: Request, id: string | unde
 export const destroyStrAuthSession = async (req: Request) => {
   const session = await authSessionStorage.getSession(req.headers.get('Cookie'))
   return await authSessionStorage.destroySession(session)
+}
+
+export const getAuthSessionIdForPostGraphile = async (req: IncomingMessage) => {
+  const cookieHeader = req.headers.cookie
+  const session = await authSessionStorage.getSession(cookieHeader)
+  return session.get(AUTH_KEY)
 }
