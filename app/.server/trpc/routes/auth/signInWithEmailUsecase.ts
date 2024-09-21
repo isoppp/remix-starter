@@ -15,14 +15,14 @@ type UseCaseArgs = {
   input: v.InferInput<typeof signInWithEmailSchema>
   ctx: Context
 }
-export const signInWithEmailUsecase = async ({ ctx, input }: UseCaseArgs): Promise<{ ok: true }> => {
+export const signInWithEmailUsecase = async ({ ctx, input }: UseCaseArgs): Promise<{ ok: boolean }> => {
   const user = await prisma.user.findUnique({
     where: {
       email: input.email,
     },
   })
 
-  if (!user) return { ok: true }
+  if (!user) return { ok: false }
 
   const hasValidVerification = await prisma.verification.findFirst({
     where: {
