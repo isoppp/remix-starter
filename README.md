@@ -11,6 +11,7 @@
 - [x] Postgres through docker compose
 - [x] Prisma
 - [x] Valibot for schema validation
+- [x] Vinejs for frontend validation
 - [x] tRPC with test example which uses DB
 - [x] React Query
 - [x] vitest ( .n. prefix runs on node env, .b. prefix runs on browser env)
@@ -20,12 +21,9 @@
 - [x] GitHub Actions for basic linting and testing
 - [x] Dockerfile for deployment
 - [x] Custom Express server with support for CSP headers, rate limiting, and more
+- [x] Password-less email authentication (using console instead of email)
 
-TODO: put links to each feature
-
----
-
-- [ ] Auth? (Firebase or self implementation)
+- TODO: put links to each feature
 
 ## Development
 

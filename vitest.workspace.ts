@@ -22,6 +22,7 @@ export default defineWorkspace([
         enabled: true,
         name: 'chromium', // browser name is required
         headless: true,
+        screenshotFailures: false,
       },
       environment: 'browser',
       globals: true,

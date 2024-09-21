@@ -1,7 +1,7 @@
 import { useNonce } from '@/lib/nonce'
 import { trpc } from '@/lib/trpcClient'
 import type { HeadersFunction } from '@remix-run/node'
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react'
+import { Link, Links, Meta, Outlet, Scripts, ScrollRestoration } from '@remix-run/react'
 import './tailwind.css'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { httpBatchLink } from '@trpc/client'
@@ -16,6 +16,7 @@ export const headers: HeadersFunction = ({ loaderHeaders }) => {
 
 export function Layout({ children }: { children: ReactNode }) {
   const nonce = useNonce()
+
   return (
     <html lang='en'>
       <head>
@@ -25,6 +26,19 @@ export function Layout({ children }: { children: ReactNode }) {
         <Links />
       </head>
       <body>
+        <header className='flex items-center gap-4 py-2'>
+          {[
+            { to: '/', children: 'Home' },
+            { to: '/signup', children: 'Signup' },
+            { to: '/signin', children: 'Signin' },
+            { to: '/signout', children: 'Signout' },
+            { to: '/authenticated-example', children: 'Authenticated' },
+          ].map((link) => (
+            <Link key={link.to} to={link.to}>
+              {link.children}
+            </Link>
+          ))}
+        </header>
         {children}
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />

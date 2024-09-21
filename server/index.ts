@@ -16,17 +16,7 @@ import morgan from 'morgan'
 
 const IS_LOCAL = process.env.APP_ENV === 'local'
 const ALLOW_INDEXING = false
-const STRONGEST_RATE_LIMIT_PATH: string[] = [
-  // '/login',
-  // '/signup',
-  // '/verify',
-  // '/admin',
-  // '/onboarding',
-  // '/reset-password',
-  // '/settings/profile',
-  // '/resources/login',
-  // '/resources/verify',
-]
+const STRONGEST_RATE_LIMIT_PATH: string[] = ['/signin', '/signup']
 
 const HELMET_OPTIONS: HelmetOptions = {
   xPoweredBy: false,

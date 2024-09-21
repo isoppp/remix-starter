@@ -1,13 +1,13 @@
+import { createTRPCRouter, p } from '@/.server/trpc/trpc'
 import { prisma } from '@/lib/prisma'
-import { createTRPCRouter, publicProcedure } from '@/server/trpc/trpc'
 import * as v from 'valibot'
 
 export const exampleRouter = createTRPCRouter({
-  hello: publicProcedure.query(() => 'world'),
-  list: publicProcedure.query(async () => {
+  hello: p.public.query(() => 'world'),
+  list: p.public.query(async () => {
     return prisma.example.findMany()
   }),
-  create: publicProcedure
+  create: p.public
     .input(
       v.parser(
         v.object({

@@ -63,4 +63,8 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  a {
+    @apply text-blue-700 visited:text-purple-900;
+  }
 }
