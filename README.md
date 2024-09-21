@@ -22,6 +22,7 @@
 - [x] Dockerfile for deployment
 - [x] Custom Express server with support for CSP headers, rate limiting, and more
 - [x] Password-less email authentication (using console instead of email)
+- [x] Postgraphile for GraphQL API ( I don't know it's useful or not... just testing )
 - TODO: put links to each feature
 
 ## Development

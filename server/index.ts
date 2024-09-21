@@ -3,6 +3,10 @@
  */
 
 import crypto from 'node:crypto'
+import type { IncomingMessage } from 'node:http'
+import { getAuthSessionIdForPostGraphile } from '@/.server/cookie-session/auth-session'
+import { env } from '@/lib/env'
+import { prisma } from '@/lib/prisma'
 import { createRequestHandler } from '@remix-run/express'
 import type { ServerBuild } from '@remix-run/node'
 import chalk from 'chalk'
@@ -13,6 +17,8 @@ import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import helmet, { type HelmetOptions } from 'helmet'
 import morgan from 'morgan'
+import { postgraphile } from 'postgraphile'
+import type { SchemaBuilder } from 'postgraphile'
 
 const IS_LOCAL = process.env.APP_ENV === 'local'
 const ALLOW_INDEXING = false
@@ -45,6 +51,57 @@ const viteDevServer = IS_LOCAL
 
 // Express app setup
 const app = express()
+
+// postgraphile
+const createIgnoreTablesPlugin = (ignoredTables: string[]) => {
+  return function IgnoreTablesPlugin(builder: SchemaBuilder) {
+    builder.hook('build', (build) => {
+      const { pgIntrospectionResultsByKind } = build
+
+      pgIntrospectionResultsByKind.class = pgIntrospectionResultsByKind.class.filter(
+        (table: { name: string }) => !ignoredTables.includes(table.name),
+      )
+      return build
+    })
+  }
+}
+const getUserIdBySessionForPostgraphile = async (req: IncomingMessage) => {
+  const sessionId = await getAuthSessionIdForPostGraphile(req)
+  if (sessionId) {
+    const session = await prisma.session.findUnique({
+      where: { id: sessionId },
+      select: { id: true, user: true },
+    })
+    const userId = session?.user.id
+    if (userId) return userId
+  }
+
+  if (env.APP_ENV === 'local') {
+    const user = await prisma.user.findUnique({
+      where: { email: 'test@example.com' },
+    })
+    if (user) return user.id
+  }
+  return '-1'
+}
+const databaseUrl = process.env.DATABASE_URL || 'postgres://user:pass@host:5432/dbname'
+app.use(
+  postgraphile(databaseUrl, 'public', {
+    appendPlugins: [createIgnoreTablesPlugin(['_prisma_migrations', 'Verification'])],
+    watchPg: true,
+    graphiql: env.APP_ENV === 'local',
+    enhanceGraphiql: env.APP_ENV === 'local',
+    ignoreRBAC: false,
+    exportGqlSchemaPath: 'schema.graphql',
+    pgSettings: async (req) => {
+      const userId = await getUserIdBySessionForPostgraphile(req)
+      return {
+        role: 'postgraphile',
+        'app.current_user_id': userId,
+      }
+    },
+  }),
+)
 
 // Middleware: Compression
 app.use(compression())
