@@ -46,7 +46,7 @@
     "date-fns": "3.6.0",
     "dotenv-cli": "7.4.2",
     "execa": "9.3.1",
-    "express": "4.19.2",
+    "express": "4.20.0",
     "express-rate-limit": "7.4.0",
     "get-port": "7.1.0",
     "helmet": "7.1.0",
