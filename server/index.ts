@@ -9,11 +9,13 @@ import chalk from 'chalk'
 import closeWithGrace from 'close-with-grace'
 import compression from 'compression'
 import express from 'express'
+import type { NextFunction, Request, Response } from 'express'
 import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import helmet, { type HelmetOptions } from 'helmet'
 import morgan from 'morgan'
 
+import { ErrorReporting } from '@google-cloud/error-reporting'
 import './otel'
 import './logger'
 
@@ -48,6 +50,16 @@ const viteDevServer = IS_LOCAL
 
 // Express app setup
 const app = express()
+
+const errors = new ErrorReporting({
+  reportMode: 'always',
+})
+const errorHandler = (err: Error, _: Request, __: Response, next: NextFunction) => {
+  // gLogger.error(`Error: ${err.message}`)
+  errors.report(err)
+  next(err)
+}
+app.use(errorHandler)
 
 // Middleware: Compression
 app.use(compression())
@@ -173,7 +185,8 @@ const server = app.listen(portToUse, () => {
 })
 
 // Graceful shutdown
-closeWithGrace(async () => {
+closeWithGrace(async ({ err }) => {
+  errors.report(err)
   await new Promise((resolve, reject) => {
     server.close((e) => (e ? reject(e) : resolve('ok')))
   })
