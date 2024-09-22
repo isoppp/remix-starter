@@ -15,6 +15,7 @@ import helmet, { type HelmetOptions } from 'helmet'
 import morgan from 'morgan'
 
 import './otel'
+import './logger'
 
 const IS_LOCAL = process.env.APP_ENV === 'local'
 const ALLOW_INDEXING = false
