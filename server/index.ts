@@ -14,6 +14,8 @@ import getPort, { portNumbers } from 'get-port'
 import helmet, { type HelmetOptions } from 'helmet'
 import morgan from 'morgan'
 
+import './otel'
+
 const IS_LOCAL = process.env.APP_ENV === 'local'
 const ALLOW_INDEXING = false
 const STRONGEST_RATE_LIMIT_PATH: string[] = ['/signin', '/signup']
