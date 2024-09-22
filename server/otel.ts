@@ -1,6 +1,8 @@
 import { TraceExporter } from '@google-cloud/opentelemetry-cloud-trace-exporter'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
 import * as opentelemetry from '@opentelemetry/sdk-node'
+import p from '@prisma/instrumentation'
+import { RemixInstrumentation } from 'opentelemetry-instrumentation-remix'
 
 const sdk = new opentelemetry.NodeSDK({
   traceExporter: new TraceExporter({
@@ -15,6 +17,8 @@ const sdk = new opentelemetry.NodeSDK({
         enabled: false,
       },
     }),
+    new p.PrismaInstrumentation(),
+    new RemixInstrumentation(),
   ],
 })
 
