@@ -40,3 +40,4 @@
 #/vite.config.ts
 /vitest-example
 /vitest.workspace.ts
+google-credentials.json
