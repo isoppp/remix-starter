@@ -10,7 +10,7 @@ const logging = new Logging({
 const logName = 'your-log-name'
 
 // ログエントリを作成する関数
-async function writeLog(severity, message) {
+export async function writeLog(severity, message) {
   const log = logging.log(logName)
 
   const metadata = {
