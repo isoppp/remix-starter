@@ -13,7 +13,6 @@ import {
   Section,
   Text,
 } from '@react-email/components'
-import type { FC } from 'react'
 
 const baseUrl = 'http://localhost:3000'
 const serviceName = '@isoppp/remix-starter'
@@ -21,7 +20,7 @@ const serviceName = '@isoppp/remix-starter'
 type Props = {
   pathname: string
 }
-export const SignInVerification: FC<Props> = ({ pathname = `/signin/${generateRandomURLString()}` }) => {
+export const SignInVerification = ({ pathname = `/signin/${generateRandomURLString()}` }: Props) => {
   const href = baseUrl + pathname
   return (
     <Html>

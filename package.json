@@ -10,7 +10,7 @@
     "build:remix": "remix vite:build",
     "build:server": "tsx ./scripts/build-server.ts",
     "dev": "dotenv -e .env.local -- node ./server/dev-server.js",
-    "dev-email": "email dev",
+    "dev-email": "email dev --dir ./app/components/emails",
     "lint": "eslint .",
     "check": "pnpm biome check",
     "lint-fix": "pnpm lint --fix && pnpm check --write",
