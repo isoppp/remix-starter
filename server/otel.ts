@@ -1,9 +1,12 @@
+import { TraceExporter } from '@google-cloud/opentelemetry-cloud-trace-exporter'
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import * as opentelemetry from '@opentelemetry/sdk-node'
 
 const sdk = new opentelemetry.NodeSDK({
-  traceExporter: new OTLPTraceExporter(),
+  traceExporter: new TraceExporter({
+    projectId: 'experimental-436413',
+    keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+  }),
   instrumentations: [
     getNodeAutoInstrumentations({
       // we recommend disabling fs autoinstrumentation since it can be noisy

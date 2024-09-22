@@ -60,6 +60,7 @@ const errorHandler = (err: Error, _: Request, __: Response, next: NextFunction) 
   next(err)
 }
 app.use(errorHandler)
+errors.report(new Error('Server started'))
 
 // Middleware: Compression
 app.use(compression())
