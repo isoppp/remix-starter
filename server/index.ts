@@ -12,9 +12,11 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import helmet, { type HelmetOptions } from 'helmet'
-import { logger } from './logger'
+import { logger } from './logger.js'
 
-import './open-telemetry'
+import { initOpenTelemetry } from './open-telemetry.js'
+
+initOpenTelemetry()
 
 const IS_LOCAL = process.env.APP_ENV === 'local'
 const ALLOW_INDEXING = false

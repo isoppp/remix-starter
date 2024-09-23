@@ -45,11 +45,9 @@ COPY --from=builder /app/prisma /app/prisma
 COPY --from=builder /app/package.json /app/package.json
 COPY --from=builder /app/index.js /app/index.js
 
-# Set production environment
-ENV NODE_ENV="production"
-ENV PORT=3000
 
 # Set production environment
+ENV NODE_ENV="production"
 ENV PORT=3000
 
 # Start the server by default, this can be overwritten at runtime
