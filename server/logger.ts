@@ -1,35 +1,26 @@
-import { Logging } from '@google-cloud/logging'
+import pino from 'pino'
+import type { LokiOptions } from 'pino-loki'
 
-// Loggingクライアントを作成
-const logging = new Logging({
-  projectId: 'experimental-436413',
-  keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+const transport = pino.transport<LokiOptions>({
+  target: 'pino-loki',
+  level: 'info',
+  options: {
+    batching: true,
+    interval: 5,
+    host: 'https://logs-prod-021.grafana.net',
+    basicAuth: {
+      username: process.env.LOGGER_TRANSPORTER_USER ?? '',
+      password: process.env.LOGGER_TRANSPORTER_PASS ?? '',
+    },
+    labels: {
+      app: 'otel-test',
+      service_name: 'otel-test',
+      service_namespace: 'remix-starter',
+      environment: 'local',
+    },
+  },
 })
 
-// ログ名を指定
-const logName = 'your-log-name'
-
-// ログエントリを作成する関数
-export async function writeLog(severity, message) {
-  const log = logging.log(logName)
-
-  const metadata = {
-    severity: severity,
-    resource: {
-      type: 'global',
-    },
-  }
-
-  const entry = log.entry(metadata, message)
-
-  try {
-    await log.write(entry)
-    console.log(`Logged: ${message}`)
-  } catch (error) {
-    console.error('Error writing to log:', error)
-  }
-}
-
-// 使用例
-await writeLog('INFO', 'This is an info message')
-await writeLog('ERROR', 'This is an error message')
+export const cLogger = pino(transport)
+cLogger.info('hello loki!')
+cLogger.error({ foo: 'bar' })
