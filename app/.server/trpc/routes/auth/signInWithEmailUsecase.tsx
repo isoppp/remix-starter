@@ -7,7 +7,6 @@ import { prisma } from '@/lib/prisma'
 import { TRPCError } from '@trpc/server'
 import { addMinutes } from 'date-fns'
 import * as v from 'valibot'
-
 export const signInWithEmailSchema = v.object({
   email: v.pipe(v.string(), v.email()),
 })

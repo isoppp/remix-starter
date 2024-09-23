@@ -12,7 +12,9 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import helmet, { type HelmetOptions } from 'helmet'
-import morgan from 'morgan'
+import './otel'
+import './logger'
+import { appLogger } from './logger'
 
 const IS_LOCAL = process.env.APP_ENV === 'local'
 const ALLOW_INDEXING = false
@@ -79,12 +81,33 @@ if (viteDevServer) {
   app.use('/assets', express.static('build/client/assets', { immutable: true, maxAge: '1y' }))
   app.use(express.static('build/client', { maxAge: '1h' }))
 }
-
 app.get(['/images/*', '/favicons/*'], (_req, res) => res.status(404).send('Not found'))
 
 // Request logger
-morgan.token('url', (req) => decodeURIComponent(req.url ?? ''))
-app.use(morgan('tiny', {}))
+const getDurationInMilliseconds = (start: [number, number]) => {
+  const diff = process.hrtime(start)
+  return diff[0] * 1000 + diff[1] / 1e6
+}
+const getColorByStatusCode = (statusCode: number) => {
+  if (statusCode >= 500) return chalk.red
+  if (statusCode >= 400) return chalk.red
+  if (statusCode >= 300) return chalk.yellow
+  return chalk.blue
+}
+app.use((req, res, next) => {
+  const start = process.hrtime()
+  const url = decodeURIComponent(req.url ?? '')
+
+  res.on('finish', () => {
+    const durationInMilliseconds = getDurationInMilliseconds(start)
+    const statusCode = res.statusCode
+    const colorizeStatusCode = getColorByStatusCode(statusCode)
+    const logMessage = `${colorizeStatusCode(statusCode)} ${req.method} ${url} - ${durationInMilliseconds.toFixed(2)} ms`
+    appLogger.info(logMessage)
+  })
+
+  next()
+})
 
 // Trust proxy
 app.set('trust proxy', true)
