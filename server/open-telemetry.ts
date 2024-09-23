@@ -6,19 +6,21 @@ import { NodeSDK } from '@opentelemetry/sdk-node'
 import p from '@prisma/instrumentation'
 import { RemixInstrumentation } from 'opentelemetry-instrumentation-remix'
 
-if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-  const sdk = new NodeSDK({
-    traceExporter: new TraceExporter({
-      keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-    }),
-    instrumentations: [
-      new ExpressInstrumentation(),
-      new HttpInstrumentation(),
-      new WinstonInstrumentation(),
-      new p.PrismaInstrumentation(),
-      new RemixInstrumentation(),
-    ],
-  })
+export const initOpenTelemetry = () => {
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    const sdk = new NodeSDK({
+      traceExporter: new TraceExporter({
+        keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
+      }),
+      instrumentations: [
+        new ExpressInstrumentation(),
+        new HttpInstrumentation(),
+        new WinstonInstrumentation(),
+        new p.PrismaInstrumentation(),
+        new RemixInstrumentation(),
+      ],
+    })
 
-  sdk.start()
+    sdk.start()
+  }
 }
