@@ -4,7 +4,6 @@ import { generateRandomURLString } from '@/.server/utils/auth.server'
 import { sendEmail } from '@/.server/utils/email'
 import SignInVerification from '@/components/emails/SignInVerification'
 import { prisma } from '@/lib/prisma'
-import { trace } from '@opentelemetry/api'
 import { TRPCError } from '@trpc/server'
 import { addMinutes } from 'date-fns'
 import * as v from 'valibot'
@@ -18,9 +17,7 @@ type UseCaseArgs = {
   ctx: Context
 }
 export const signInWithEmailUsecase = async ({ ctx, input }: UseCaseArgs): Promise<{ ok: boolean }> => {
-  const span = trace.getActiveSpan()
-  cLogger.error({ ...(span?.spanContext() ?? {}), input }, 'signInWithEmailUsecase')
-
+  cLogger.error('signInWithEmailUsecase', { input })
   const txRes = await prisma.$transaction(async (prisma) => {
     const user = await prisma.user.findUnique({
       where: {

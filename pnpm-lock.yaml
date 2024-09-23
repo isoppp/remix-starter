@@ -23,6 +23,9 @@ importers:
       '@google-cloud/opentelemetry-cloud-trace-exporter':
         specifier: 2.3.0
         version: 2.3.0(@opentelemetry/api@1.9.0)(@opentelemetry/core@1.26.0(@opentelemetry/api@1.9.0))(@opentelemetry/resources@1.26.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.26.0(@opentelemetry/api@1.9.0))
+      '@google-cloud/pino-logging-gcp-config':
+        specifier: 1.0.0
+        version: 1.0.0
       '@hookform/resolvers':
         specifier: 3.9.0
         version: 3.9.0(react-hook-form@7.53.0(react@18.3.1))
@@ -44,6 +47,9 @@ importers:
       '@opentelemetry/instrumentation':
         specifier: 0.53.0
         version: 0.53.0(@opentelemetry/api@1.9.0)
+      '@opentelemetry/instrumentation-pino':
+        specifier: 0.42.0
+        version: 0.42.0(@opentelemetry/api@1.9.0)
       '@opentelemetry/resources':
         specifier: 1.26.0
         version: 1.26.0(@opentelemetry/api@1.9.0)
@@ -113,6 +119,9 @@ importers:
       close-with-grace:
         specifier: 2.1.0
         version: 2.1.0
+      cloud-pine:
+        specifier: 2.0.1
+        version: 2.0.1
       clsx:
         specifier: 2.1.1
         version: 2.1.1
@@ -1672,6 +1681,9 @@ packages:
   '@google-cloud/paginator@5.0.2':
     resolution: {integrity: sha512-DJS3s0OVH4zFDB1PzjxAsHqJT6sKVbRwwML0ZBP9PbU7Yebtu/7SWMRzvO2J3nUi9pRNITCfu4LJeooM2w4pjg==}
     engines: {node: '>=14.0.0'}
+
+  '@google-cloud/pino-logging-gcp-config@1.0.0':
+    resolution: {integrity: sha512-ONZOi/UusVAGWvSLLx2VdZKeaFYBSHw0WK609S8iQATBLj4hx4PUot8CFTN2dDRhfmuG/GN4cZGFbxkAmbXDPg==}
 
   '@google-cloud/precise-date@4.0.0':
     resolution: {integrity: sha512-1TUx3KdaU3cN7nfCdNf+UVqA/PSX29Cjcox3fZZBtINlRrXVTmUkQnCKv2MbBUbCopbK4olAT1IHl76uZyCiVA==}
@@ -3798,6 +3810,11 @@ packages:
 
   close-with-grace@2.1.0:
     resolution: {integrity: sha512-rME1AtzKc9dfpLr8XBVhXqhVZDvtaIA7FIpjPaO+DmDsomaTNtuEBZMoNDgIvjHYK5q8/Afxy34YTXInUBsT1A==}
+
+  cloud-pine@2.0.1:
+    resolution: {integrity: sha512-BY9vhsW+IcIqMh1pB9A65KvUPqOj6UcV3v2icwE3qbS4N7j08UQ3yjaqZQjzn1l9kasYZKyNreD/pwnLnf8xjg==}
+    engines: {node: '>=16.x'}
+    hasBin: true
 
   clsx@2.0.0:
     resolution: {integrity: sha512-rQ1+kcj+ttHG0MKVGBUXwayCCF1oh39BF5COIpRzuCEv8Mwjv0XucrI2ExNTOn9IlLifGClWQcU9BrZORvtw6Q==}
@@ -9064,6 +9081,16 @@ snapshots:
       arrify: 2.0.1
       extend: 3.0.2
 
+  '@google-cloud/pino-logging-gcp-config@1.0.0':
+    dependencies:
+      '@google-cloud/logging': 11.2.0
+      eventid: 2.0.1
+      google-gax: 4.4.1
+      pino: 9.4.0
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+
   '@google-cloud/precise-date@4.0.0': {}
 
   '@google-cloud/projectify@3.0.0': {}
@@ -11739,6 +11766,15 @@ snapshots:
   clone@1.0.4: {}
 
   close-with-grace@2.1.0: {}
+
+  cloud-pine@2.0.1:
+    dependencies:
+      '@google-cloud/logging': 11.2.0
+      minimist: 1.2.8
+      split2: 4.2.0
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
 
   clsx@2.0.0: {}
 

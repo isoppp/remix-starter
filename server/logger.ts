@@ -1,26 +1,30 @@
-import pino from 'pino'
-import type { LokiOptions } from 'pino-loki'
+import winston from 'winston'
 
-const transport = pino.transport<LokiOptions>({
-  target: 'pino-loki',
-  level: 'info',
-  options: {
-    batching: true,
-    interval: 5,
-    host: 'https://logs-prod-021.grafana.net',
-    basicAuth: {
-      username: process.env.LOGGER_TRANSPORTER_USER ?? '',
-      password: process.env.LOGGER_TRANSPORTER_PASS ?? '',
-    },
-    labels: {
-      app: 'otel-test',
-      service_name: 'otel-test',
-      service_namespace: 'remix-starter',
-      environment: 'local',
-    },
-  },
+// Imports the Google Cloud client library for Winston
+import { LoggingWinston } from '@google-cloud/logging-winston'
+
+const loggingWinston = new LoggingWinston({
+  keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
 })
 
-export const cLogger = pino(transport)
-cLogger.info('hello loki!')
-cLogger.error({ foo: 'bar' })
+const customFormat = winston.format.printf(({ level, message, timestamp, ...metadata }) => {
+  const { trace_id, span_id, trace_flags, ...rest } = metadata
+  return `${timestamp} [${level}]: ${message} ${Object.keys(rest).length ? JSON.stringify(rest) : ''}`
+})
+
+export const cLogger = winston.createLogger({
+  level: 'info',
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        customFormat,
+      ),
+    }),
+    loggingWinston,
+  ],
+})
+
+cLogger.info('hello winston!')
+cLogger.error('error test', { foo: 'bar' })
