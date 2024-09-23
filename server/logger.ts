@@ -7,7 +7,7 @@ const loggingWinston = new LoggingWinston({
   keyFile: process.env.GOOGLE_APPLICATION_CREDENTIALS,
 })
 
-export const cLogger = winston.createLogger({
+export const appLogger = winston.createLogger({
   level: 'info',
   transports: [
     new winston.transports.Console({
@@ -16,6 +16,3 @@ export const cLogger = winston.createLogger({
     loggingWinston,
   ],
 })
-
-cLogger.info('hello winston!')
-cLogger.error('error test', { foo: 'bar' })

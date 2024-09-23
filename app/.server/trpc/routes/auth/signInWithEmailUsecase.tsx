@@ -7,7 +7,6 @@ import { prisma } from '@/lib/prisma'
 import { TRPCError } from '@trpc/server'
 import { addMinutes } from 'date-fns'
 import * as v from 'valibot'
-import { cLogger } from '../../../../../server/logger'
 export const signInWithEmailSchema = v.object({
   email: v.pipe(v.string(), v.email()),
 })
@@ -17,7 +16,6 @@ type UseCaseArgs = {
   ctx: Context
 }
 export const signInWithEmailUsecase = async ({ ctx, input }: UseCaseArgs): Promise<{ ok: boolean }> => {
-  cLogger.error('signInWithEmailUsecase', { input })
   const txRes = await prisma.$transaction(async (prisma) => {
     const user = await prisma.user.findUnique({
       where: {

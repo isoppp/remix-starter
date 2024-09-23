@@ -14,7 +14,7 @@ import getPort, { portNumbers } from 'get-port'
 import helmet, { type HelmetOptions } from 'helmet'
 import './otel'
 import './logger'
-import { cLogger } from './logger'
+import { appLogger } from './logger'
 
 const IS_LOCAL = process.env.APP_ENV === 'local'
 const ALLOW_INDEXING = false
@@ -111,7 +111,7 @@ app.use((req, res, next) => {
     const logMessage = `${colorizeStatusCode(statusCode)} ${req.method} ${url} - ${durationInMilliseconds.toFixed(2)} ms`
 
     // 色付きのログメッセージを出力（全てinfoレベル）
-    cLogger.info(logMessage)
+    appLogger.info(logMessage)
   })
 
   next()
