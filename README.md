@@ -23,7 +23,8 @@
 - [x] Custom Express server with support for CSP headers, rate limiting, and more
 - [x] Password-less email authentication (using console instead of email)
   - React Email template
-- TODO: put links to each feature
+- [x] Cloud Trace (Open Telemetry) and Cloud Logging (logs) Support. It integrates each other.
+- TODO: put links
 
 ## Development
 
