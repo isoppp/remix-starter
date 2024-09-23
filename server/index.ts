@@ -3,6 +3,7 @@
  */
 
 import crypto from 'node:crypto'
+import { appLogger } from '@/.server/utils/logger'
 import { createRequestHandler } from '@remix-run/express'
 import type { ServerBuild } from '@remix-run/node'
 import chalk from 'chalk'
@@ -12,9 +13,8 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import helmet, { type HelmetOptions } from 'helmet'
-import './otel'
-import './logger'
-import { appLogger } from './logger'
+
+import '@/.server/utils/open-telemetry'
 
 const IS_LOCAL = process.env.APP_ENV === 'local'
 const ALLOW_INDEXING = false
