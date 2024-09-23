@@ -81,25 +81,19 @@ if (viteDevServer) {
   app.use('/assets', express.static('build/client/assets', { immutable: true, maxAge: '1y' }))
   app.use(express.static('build/client', { maxAge: '1h' }))
 }
-
 app.get(['/images/*', '/favicons/*'], (_req, res) => res.status(404).send('Not found'))
 
 // Request logger
-
-// リクエストの経過時間をミリ秒で計算する関数
 const getDurationInMilliseconds = (start: [number, number]) => {
   const diff = process.hrtime(start)
   return diff[0] * 1000 + diff[1] / 1e6
 }
-
-// ステータスコードに基づいて色を選択する関数
 const getColorByStatusCode = (statusCode: number) => {
   if (statusCode >= 500) return chalk.red
   if (statusCode >= 400) return chalk.red
   if (statusCode >= 300) return chalk.yellow
   return chalk.blue
 }
-
 app.use((req, res, next) => {
   const start = process.hrtime()
   const url = decodeURIComponent(req.url ?? '')
@@ -109,8 +103,6 @@ app.use((req, res, next) => {
     const statusCode = res.statusCode
     const colorizeStatusCode = getColorByStatusCode(statusCode)
     const logMessage = `${colorizeStatusCode(statusCode)} ${req.method} ${url} - ${durationInMilliseconds.toFixed(2)} ms`
-
-    // 色付きのログメッセージを出力（全てinfoレベル）
     appLogger.info(logMessage)
   })
 
