@@ -12,9 +12,9 @@ import express from 'express'
 import rateLimit from 'express-rate-limit'
 import getPort, { portNumbers } from 'get-port'
 import helmet, { type HelmetOptions } from 'helmet'
-import morgan from 'morgan'
 import './otel'
 import './logger'
+import { cLogger } from './logger'
 
 const IS_LOCAL = process.env.APP_ENV === 'local'
 const ALLOW_INDEXING = false
@@ -85,8 +85,37 @@ if (viteDevServer) {
 app.get(['/images/*', '/favicons/*'], (_req, res) => res.status(404).send('Not found'))
 
 // Request logger
-morgan.token('url', (req) => decodeURIComponent(req.url ?? ''))
-app.use(morgan('tiny', {}))
+
+// リクエストの経過時間をミリ秒で計算する関数
+const getDurationInMilliseconds = (start: [number, number]) => {
+  const diff = process.hrtime(start)
+  return diff[0] * 1000 + diff[1] / 1e6
+}
+
+// ステータスコードに基づいて色を選択する関数
+const getColorByStatusCode = (statusCode: number) => {
+  if (statusCode >= 500) return chalk.red
+  if (statusCode >= 400) return chalk.red
+  if (statusCode >= 300) return chalk.yellow
+  return chalk.blue
+}
+
+app.use((req, res, next) => {
+  const start = process.hrtime()
+  const url = decodeURIComponent(req.url ?? '')
+
+  res.on('finish', () => {
+    const durationInMilliseconds = getDurationInMilliseconds(start)
+    const statusCode = res.statusCode
+    const colorizeStatusCode = getColorByStatusCode(statusCode)
+    const logMessage = `${colorizeStatusCode(statusCode)} ${req.method} ${url} - ${durationInMilliseconds.toFixed(2)} ms`
+
+    // 色付きのログメッセージを出力（全てinfoレベル）
+    cLogger.info(logMessage)
+  })
+
+  next()
+})
 
 // Trust proxy
 app.set('trust proxy', true)
