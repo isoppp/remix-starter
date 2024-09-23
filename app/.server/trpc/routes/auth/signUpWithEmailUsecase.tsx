@@ -1,6 +1,6 @@
 import { commitVerificationSessionWithValue } from '@/.server/cookie-session/verification-session'
 import type { Context } from '@/.server/trpc/trpc'
-import { generateRandomURLString } from '@/.server/utils/auth.server'
+import { generateRandomURLString } from '@/.server/utils/auth'
 import { sendEmail } from '@/.server/utils/email'
 import SignUpVerification from '@/components/emails/SignUpVerification'
 import { prisma } from '@/lib/prisma'

@@ -1,4 +1,4 @@
-import { generateRandomURLString } from '@/.server/utils/auth.server'
+import { generateRandomURLString } from '@/.server/utils/auth'
 import {
   Body,
   Button,
