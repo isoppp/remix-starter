@@ -1,3 +1,5 @@
+This repo merged to my starter and continue maintanance on: https://github.com/isoppp/ts-starter-202410
+
 # Remix Starter
 
 ## Features
